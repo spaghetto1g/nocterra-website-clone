@@ -1,0 +1,633 @@
+"use client"
+
+import Link from "next/link"
+import type { MouseEvent } from "react"
+import { useEffect, useMemo, useState } from "react"
+
+const FALLBACK_IMAGE = "/placeholder.jpg"
+
+type VillaClientProps = {
+  villa: any
+}
+
+function safeText(value: unknown, fallback = "-") {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : fallback
+}
+
+function safeNumber(value: unknown) {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0
+}
+
+function safeImageUrl(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : FALLBACK_IMAGE
+}
+
+function safeStringArray(value: unknown) {
+  if (!Array.isArray(value)) return []
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+type TourRenderData =
+  | { kind: "iframe"; src: string; openUrl: string }
+  | { kind: "image"; src: string; openUrl: string }
+  | { kind: "external"; openUrl: string }
+
+function extractIframeSrc(input: string) {
+  const srcMatch = input.match(/src=["']([^"']+)["']/i)
+  return srcMatch?.[1]?.trim() || ""
+}
+
+function isImageUrl(input: string) {
+  return /\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?$/i.test(input)
+}
+
+function normalizeTourUrl(input: string) {
+  const trimmed = input.trim()
+
+  const matterportIdPatterns = [
+    /discover\.matterport\.com\/space\/([A-Za-z0-9_-]+)/i,
+    /my\.matterport\.com\/show\/\?m=([A-Za-z0-9_-]+)/i,
+    /my\.matterport\.com\/work\/\?m=([A-Za-z0-9_-]+)/i,
+    /[?&]m=([A-Za-z0-9_-]+)/i,
+  ]
+
+  for (const pattern of matterportIdPatterns) {
+    const match = trimmed.match(pattern)
+    if (match?.[1]) {
+      return `https://my.matterport.com/show/?m=${encodeURIComponent(match[1])}`
+    }
+  }
+
+  const youtubePatterns = [
+    /youtube\.com\/watch\?v=([A-Za-z0-9_-]+)/i,
+    /youtu\.be\/([A-Za-z0-9_-]+)/i,
+    /youtube\.com\/embed\/([A-Za-z0-9_-]+)/i,
+  ]
+
+  for (const pattern of youtubePatterns) {
+    const match = trimmed.match(pattern)
+    if (match?.[1]) {
+      return `https://www.youtube.com/embed/${encodeURIComponent(match[1])}`
+    }
+  }
+
+  const vimeoPatterns = [
+    /vimeo\.com\/(\d+)/i,
+    /player\.vimeo\.com\/video\/(\d+)/i,
+  ]
+
+  for (const pattern of vimeoPatterns) {
+    const match = trimmed.match(pattern)
+    if (match?.[1]) {
+      return `https://player.vimeo.com/video/${encodeURIComponent(match[1])}`
+    }
+  }
+
+  const kuulaMatch = trimmed.match(/kuula\.co\/(?:post|share)\/([A-Za-z0-9]+)/i)
+  if (kuulaMatch?.[1]) {
+    return `https://kuula.co/share/${encodeURIComponent(kuulaMatch[1])}?logo=0&info=0&fs=1&vr=0&sd=1&thumbs=1`
+  }
+
+  if (/app\.cloudpano\.com\/tours\//i.test(trimmed)) return trimmed
+  if (/momento360\.com\/e\/u\//i.test(trimmed)) return trimmed
+  if (/roundme\.com\/embed\//i.test(trimmed)) return trimmed
+
+  return trimmed
+}
+
+function getTourData(value: unknown): TourRenderData | null {
+  if (typeof value !== "string") return null
+
+  const raw = value.trim()
+  if (!raw) return null
+
+  const iframeSrc = extractIframeSrc(raw)
+  const input = iframeSrc || raw
+
+  if (!/^https?:\/\//i.test(input) && !input.startsWith("/")) return null
+
+  if (isImageUrl(input)) {
+    return { kind: "image", src: input, openUrl: input }
+  }
+
+  const normalized = normalizeTourUrl(input)
+
+  const knownEmbeddable =
+    /my\.matterport\.com\/show/i.test(normalized) ||
+    /youtube\.com\/embed/i.test(normalized) ||
+    /player\.vimeo\.com\/video/i.test(normalized) ||
+    /kuula\.co\/share/i.test(normalized) ||
+    /app\.cloudpano\.com\/tours\//i.test(normalized) ||
+    /momento360\.com\/e\/u\//i.test(normalized) ||
+    /roundme\.com\/embed\//i.test(normalized)
+
+  if (knownEmbeddable) {
+    return { kind: "iframe", src: normalized, openUrl: normalized }
+  }
+
+  return { kind: "external", openUrl: normalized }
+}
+
+function safeExternalUrl(value: unknown) {
+  if (typeof value !== "string") return ""
+
+  const input = value.trim()
+  if (!input) return ""
+
+  if (/^https?:\/\//i.test(input)) return input
+
+  return ""
+}
+
+
+function safeCoordinate(value: unknown) {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : null
+}
+
+function createMapData(latitude: number | null, longitude: number | null) {
+  if (latitude === null || longitude === null) return null
+
+  const delta = 0.01
+  const bbox = [
+    longitude - delta,
+    latitude - delta,
+    longitude + delta,
+    latitude + delta,
+  ].join(",")
+
+  return {
+    embedUrl: `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${latitude},${longitude}`)}`,
+    openUrl: `https://www.openstreetmap.org/?mlat=${encodeURIComponent(String(latitude))}&mlon=${encodeURIComponent(String(longitude))}#map=15/${encodeURIComponent(String(latitude))}/${encodeURIComponent(String(longitude))}`,
+  }
+}
+
+function createPurchaseMailto(title: string, location: string) {
+  const subject = `Purchase interest: ${title}`
+  const body = [
+    `Hello NOCTERRA,`,
+    ``,
+    `I am interested in buying this property:`,
+    `Property: ${title}`,
+    `Location: ${location}`,
+    ``,
+    `Please contact me with more information.`,
+    ``,
+    `Name:`,
+    `Phone:`,
+    `Email:`,
+  ].join("\n")
+
+  return `mailto:info@nocterra.gr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+}
+
+function ImageWithFallback({
+  src,
+  alt,
+  className,
+  onClick,
+}: {
+  src: string
+  alt: string
+  className: string
+  onClick?: (event: MouseEvent<HTMLImageElement>) => void
+}) {
+  const [imageSrc, setImageSrc] = useState(src || FALLBACK_IMAGE)
+
+  useEffect(() => {
+    setImageSrc(src || FALLBACK_IMAGE)
+  }, [src])
+
+  return (
+    <img
+      src={imageSrc}
+      alt={alt}
+      className={className}
+      onClick={onClick}
+      onError={() => setImageSrc(FALLBACK_IMAGE)}
+    />
+  )
+}
+
+export default function VillaClient({ villa }: VillaClientProps) {
+  const [activeImage, setActiveImage] = useState(0)
+  const [heroImageIndex, setHeroImageIndex] = useState(0)
+  const [open, setOpen] = useState(false)
+
+  const title = safeText(villa?.title, "NOCTERRA Villa")
+  const location = safeText(villa?.location)
+  const description = safeText(villa?.description, "Details coming soon.")
+  const heroImage = safeImageUrl(villa?.hero_image || villa?.heroImage)
+  const amenities = safeStringArray(villa?.amenities)
+  const tourData = getTourData(villa?.tour_link || villa?.tourLink)
+  const rentUrl = safeExternalUrl(villa?.rent_url)
+  const socialUrl = safeExternalUrl(villa?.social_url)
+  const saleInterestEnabled = Boolean(villa?.sale_interest_enabled)
+  const showPropertyActions = Boolean(rentUrl || socialUrl || saleInterestEnabled)
+  const purchaseMailto = createPurchaseMailto(title, location)
+  const propertyType = safeText(villa?.property_type, "villa").toLowerCase()
+  const latitude = safeCoordinate(villa?.latitude)
+  const longitude = safeCoordinate(villa?.longitude)
+  const mapData = createMapData(latitude, longitude)
+  const isYacht = propertyType === "yacht" || propertyType === "luxury_boat"
+  const yachtDetails = [
+    villa?.departure_port ? { label: "Departure", value: villa.departure_port } : null,
+    villa?.yacht_route ? { label: "Route", value: villa.yacht_route } : null,
+    safeNumber(villa?.max_passengers) ? { label: "Passengers", value: safeNumber(villa.max_passengers) } : null,
+    safeNumber(villa?.crew) ? { label: "Crew", value: safeNumber(villa.crew) } : null,
+    safeNumber(villa?.cabins) ? { label: "Cabins", value: safeNumber(villa.cabins) } : null,
+    villa?.yacht_length ? { label: "Length", value: villa.yacht_length } : null,
+    villa?.charter_price ? { label: "Charter", value: villa.charter_price } : null,
+  ].filter(Boolean) as { label: string; value: string | number }[]
+
+  const heroImages = useMemo(() => {
+    const savedHeroImages = safeStringArray(villa?.hero_images)
+    const unique = [...savedHeroImages, heroImage]
+      .filter(Boolean)
+      .filter((image, index, array) => array.indexOf(image) === index)
+
+    return unique.length > 0 ? unique : [FALLBACK_IMAGE]
+  }, [villa?.hero_images, heroImage])
+
+  const images = useMemo(() => {
+    const gallery = safeStringArray(villa?.gallery)
+    const unique = [...heroImages, ...gallery]
+      .filter(Boolean)
+      .filter((image, index, array) => array.indexOf(image) === index)
+
+    return unique.length > 0 ? unique : [FALLBACK_IMAGE]
+  }, [villa?.gallery, heroImages])
+
+  const heroActiveImage = heroImages[heroImageIndex] || heroImages[0] || FALLBACK_IMAGE
+  const safeImage = images[activeImage] || images[0] || FALLBACK_IMAGE
+  const sideImages = [1, 2, 3].map((offset) => images[(activeImage + offset) % images.length])
+
+  function nextImage() {
+    setActiveImage((prev) => (prev + 1 >= images.length ? 0 : prev + 1))
+  }
+
+  function prevImage() {
+    setActiveImage((prev) => (prev - 1 < 0 ? images.length - 1 : prev - 1))
+  }
+
+  function openImage(index: number) {
+    setActiveImage(index)
+    setOpen(true)
+  }
+
+  function nextHeroImage() {
+    setHeroImageIndex((prev) => (prev + 1 >= heroImages.length ? 0 : prev + 1))
+  }
+
+  function prevHeroImage() {
+    setHeroImageIndex((prev) => (prev - 1 < 0 ? heroImages.length - 1 : prev - 1))
+  }
+
+  useEffect(() => {
+    if (activeImage >= images.length) setActiveImage(0)
+  }, [activeImage, images.length])
+
+  useEffect(() => {
+    if (heroImageIndex >= heroImages.length) setHeroImageIndex(0)
+  }, [heroImageIndex, heroImages.length])
+
+  useEffect(() => {
+    if (heroImages.length <= 1) return
+
+    const interval = window.setInterval(() => {
+      setHeroImageIndex((prev) => (prev + 1 >= heroImages.length ? 0 : prev + 1))
+    }, 6000)
+
+    return () => window.clearInterval(interval)
+  }, [heroImages.length])
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (!open) return
+
+      if (e.key === "Escape") setOpen(false)
+      if (e.key === "ArrowRight") nextImage()
+      if (e.key === "ArrowLeft") prevImage()
+    }
+
+    window.addEventListener("keydown", handleKey)
+    return () => window.removeEventListener("keydown", handleKey)
+  }, [open, images.length])
+
+  return (
+    <div className="text-white bg-black">
+      <div className="w-full h-[80vh] relative overflow-hidden bg-black">
+        <Link href="/" className="absolute top-6 left-6 z-20 flex items-center">
+          <span className="text-lg tracking-[0.3em] font-light">
+            <span className="text-[#c9a962]">N</span>
+            <span className="text-white">OCTERRA</span>
+          </span>
+        </Link>
+
+        <ImageWithFallback src={heroActiveImage} alt={title} className="w-full h-full object-cover transition-opacity duration-1000" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/5 to-black/65" />
+
+        {heroImages.length > 1 && (
+          <>
+            <button type="button" onClick={prevHeroImage} className="absolute left-6 top-1/2 -translate-y-1/2 z-20 text-4xl text-white/70 hover:text-white">
+              ‹
+            </button>
+            <button type="button" onClick={nextHeroImage} className="absolute right-6 top-1/2 -translate-y-1/2 z-20 text-4xl text-white/70 hover:text-white">
+              ›
+            </button>
+
+            <div className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 hidden md:flex flex-col items-end gap-4 z-20">
+              {heroImages.map((_, index) => (
+                <div key={index} className="flex flex-col items-center gap-2">
+                  <span className={`text-xs transition-all duration-300 ${heroImageIndex === index ? "text-white" : "text-white/40"}`}>
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  {heroImageIndex === index && <div className="w-px h-8 bg-white/60" />}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="absolute bottom-10 left-10 z-20">
+          <h1 className="text-4xl font-light">{title}</h1>
+          <p className="text-gray-300">{location}</p>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-5 text-center border-b border-white/10">
+        {isYacht ? (
+          <>
+            <div>Cabins: {safeNumber(villa?.cabins)}</div>
+            <div>Crew: {safeNumber(villa?.crew)}</div>
+            <div>Guests: {safeNumber(villa?.max_passengers) || safeNumber(villa?.guests)}</div>
+            <div>Length: {safeText(villa?.yacht_length, "-")}</div>
+            <div>360: {tourData ? "Yes" : "Soon"}</div>
+          </>
+        ) : (
+          <>
+            <div>Bedrooms: {safeNumber(villa?.bedrooms)}</div>
+            <div>Bathrooms: {safeNumber(villa?.bathrooms)}</div>
+            <div>Guests: {safeNumber(villa?.guests)}</div>
+            <div>Sqft: {safeNumber(villa?.sqft)}</div>
+            <div>Pool: {villa?.pool ? "Yes" : "No"}</div>
+          </>
+        )}
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <div className="grid grid-cols-3 gap-6">
+          <div className="col-span-2 relative h-[500px] overflow-hidden bg-black">
+            <ImageWithFallback
+              src={safeImage}
+              alt={title}
+              className="w-full h-full object-cover cursor-pointer"
+              onClick={() => openImage(activeImage)}
+            />
+
+            <button type="button" onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 text-4xl text-white/80 hover:text-white">
+              ‹
+            </button>
+            <button type="button" onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 text-4xl text-white/80 hover:text-white">
+              ›
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2 h-[500px] overflow-hidden">
+            {sideImages.map((img, i) => {
+              const imageIndex = (activeImage + i + 1) % images.length
+
+              return (
+                <ImageWithFallback
+                  key={`${img}-${i}`}
+                  src={img}
+                  alt={`${title} gallery ${i + 1}`}
+                  onClick={() => openImage(imageIndex)}
+                  className="h-[161px] w-full object-cover cursor-pointer border border-transparent hover:border-yellow-500"
+                />
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+
+
+      {isYacht && yachtDetails.length > 0 && (
+        <div className="max-w-6xl mx-auto px-6 py-8 border-t border-white/10">
+          <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-5">Yacht Details</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {yachtDetails.map((detail) => (
+              <div key={detail.label} className="border border-white/10 bg-[#0b0b0b] px-5 py-4">
+                <p className="text-white/35 text-xs uppercase tracking-[0.2em] mb-2">{detail.label}</p>
+                <p className="text-white/80">{detail.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto px-6 flex flex-wrap gap-2 border-t border-white/10 py-6">
+        {amenities.length > 0 ? (
+          amenities.map((a, i) => (
+            <span key={`${a}-${i}`} className="px-3 py-1 border border-white/20 text-sm">
+              {a}
+            </span>
+          ))
+        ) : (
+          <span className="px-3 py-1 border border-white/20 text-sm text-white/50">Amenities coming soon</span>
+        )}
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-2 gap-6 border-t border-white/10">
+        <div>
+          <h2 className="text-2xl mb-3">About</h2>
+          <p className="text-gray-300">{description}</p>
+        </div>
+
+        <div>
+          <h2 className="text-2xl mb-3">360</h2>
+
+          {tourData ? (
+            <div className="relative h-[400px] w-full overflow-hidden border border-white/10 bg-black">
+              {tourData.kind === "iframe" ? (
+                <iframe
+                  src={tourData.src}
+                  className="absolute inset-0 w-full h-full border-0"
+                  allow="fullscreen; gyroscope; accelerometer; magnetometer; vr; xr-spatial-tracking"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              ) : tourData.kind === "image" ? (
+                <img
+                  src={tourData.src}
+                  alt="360 preview"
+                  className="absolute inset-0 h-full w-full object-contain bg-black"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center bg-black">
+                  <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-4">External 360 Experience</p>
+                  <p className="text-white/55 text-sm leading-6 max-w-sm mb-6">
+                    This provider does not allow embedded viewing. Open the immersive tour in a new secure tab.
+                  </p>
+                  <a
+                    href={tourData.openUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center border border-[#c9a962]/50 px-6 py-3 text-xs tracking-[0.25em] uppercase text-[#c9a962] hover:bg-[#c9a962] hover:text-black transition"
+                  >
+                    Open 360 Tour
+                  </a>
+                </div>
+              )}
+
+              <a
+                href={tourData.openUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="absolute right-3 bottom-3 bg-black/70 border border-white/15 px-3 py-2 text-[10px] tracking-[0.18em] uppercase text-white/70 hover:text-[#c9a962] hover:border-[#c9a962]/50 transition"
+              >
+                Open
+              </a>
+            </div>
+          ) : (
+            <div className="h-[400px] flex items-center justify-center border border-white/20 text-gray-500 bg-black overflow-hidden">
+              360 Tour Coming Soon
+            </div>
+          )}
+        </div>
+      </div>
+
+      <section className="max-w-6xl mx-auto px-6 py-12 border-t border-white/10">
+        <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.4fr] gap-6 items-stretch">
+          <div className="bg-[#0b0b0b] border border-white/10 px-6 md:px-8 py-8 flex flex-col justify-between">
+            <div>
+              <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-4">Location</p>
+              <h2 className="text-2xl md:text-3xl font-light text-white">{location}</h2>
+              <p className="text-white/45 text-sm mt-4 leading-6">
+                {mapData
+                  ? "Explore the property's location through the map below."
+                  : "Location details are available upon request."}
+              </p>
+            </div>
+
+            {mapData && (
+              <a
+                href={mapData.openUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-8 inline-flex w-fit items-center justify-center border border-[#c9a962]/70 px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-[#c9a962] transition-all duration-300 hover:bg-[#c9a962] hover:text-black"
+              >
+                Open map
+              </a>
+            )}
+          </div>
+
+          <div className="relative h-[320px] lg:h-[360px] overflow-hidden border border-white/10 bg-black">
+            {mapData ? (
+              <iframe
+                src={mapData.embedUrl}
+                className="absolute inset-0 h-full w-full border-0 grayscale invert-[0.9] contrast-[0.9] opacity-80"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title={`${title} location map`}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-[#070707] text-center text-sm uppercase tracking-[0.25em] text-white/35">
+                Location available upon request
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+
+      {showPropertyActions && (
+        <section className="max-w-6xl mx-auto px-6 py-12 border-t border-white/10">
+          <div className="bg-[#0b0b0b] border border-white/10 px-6 md:px-10 py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+            <div>
+              <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-3">Private Access</p>
+              <h2 className="text-2xl md:text-3xl font-light text-white">Reserve or enquire about {title}</h2>
+              <p className="text-white/45 text-sm mt-3 max-w-2xl">Choose the available rental link, view the property's social presence, or send a private purchase interest request to NOCTERRA.</p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-3 shrink-0">
+              {rentUrl && (
+                <a
+                  href={rentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center border border-[#c9a962] bg-[#c9a962] px-6 py-4 text-[11px] uppercase tracking-[0.22em] text-black transition-all duration-300 hover:bg-transparent hover:text-[#c9a962]"
+                >
+                  Rent it now
+                </a>
+              )}
+
+              {socialUrl && (
+                <a
+                  href={socialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[11px] uppercase tracking-[0.22em] text-white transition-all duration-300 hover:border-[#c9a962]/70 hover:text-[#c9a962]"
+                >
+                  View social
+                </a>
+              )}
+
+              {saleInterestEnabled && (
+                <a
+                  href={purchaseMailto}
+                  className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[11px] uppercase tracking-[0.22em] text-white transition-all duration-300 hover:border-[#c9a962]/70 hover:text-[#c9a962]"
+                >
+                  Interested in buying
+                </a>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50" onClick={() => setOpen(false)}>
+          <button type="button" className="absolute top-6 right-6 text-4xl text-white/80 hover:text-white" onClick={() => setOpen(false)}>
+            ×
+          </button>
+
+          <button
+            type="button"
+            className="absolute left-5 text-4xl text-white/80 hover:text-white"
+            onClick={(e) => {
+              e.stopPropagation()
+              prevImage()
+            }}
+          >
+            ‹
+          </button>
+
+          <ImageWithFallback
+            src={safeImage}
+            alt={title}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+            onClick={(event) => event.stopPropagation()}
+          />
+
+          <button
+            type="button"
+            className="absolute right-5 text-4xl text-white/80 hover:text-white"
+            onClick={(e) => {
+              e.stopPropagation()
+              nextImage()
+            }}
+          >
+            ›
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}

@@ -1,0 +1,36 @@
+export function safeVilla(villa: any) {
+  if (!villa) return null
+
+  return {
+    id: villa.id ?? "",
+    slug: villa.slug ?? "",
+    title: villa.title ?? "-",
+    location: villa.location ?? "-",
+    description: villa.description ?? "-",
+    hero_image: villa.hero_image ?? "/placeholder.jpg",
+
+    gallery: Array.isArray(villa.gallery) ? villa.gallery : [],
+
+    bedrooms: villa.bedrooms ?? 0,
+    bathrooms: villa.bathrooms ?? 0,
+    guests: villa.guests ?? 0,
+    sqft: villa.sqft ?? 0,
+
+    pool: villa.pool ?? false,
+
+    amenities: Array.isArray(villa.amenities)
+      ? villa.amenities
+      : [],
+
+    latitude: villa.latitude ?? null,
+    longitude: villa.longitude ?? null,
+
+    story: villa.story ?? null,
+    experience: villa.experience ?? null,
+
+    tour_link: villa.tour_link ?? "",
+    video_link: villa.video_link ?? "",
+
+    status: villa.status ?? "active",
+  }
+}
