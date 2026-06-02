@@ -64,7 +64,7 @@ export default function FeaturedPropertiesCarousel({ villas }: { villas: Feature
                   overflow-hidden
                   rounded-2xl
                   bg-[#0f0f0f]
-                  h-[360px] sm:h-[430px] md:h-[480px]
+                  h-[420px] sm:h-[430px] md:h-[480px]
                   border border-white/10
                   transition-all duration-500
                   hover:border-white/20
@@ -100,7 +100,7 @@ export default function FeaturedPropertiesCarousel({ villas }: { villas: Feature
             ))}
 
             {currentVillas.length === 0 && (
-              <div className="col-span-full h-[360px] sm:h-[430px] md:h-[480px] rounded-2xl border border-white/10 bg-[#0f0f0f] flex items-center justify-center text-white/40 text-sm tracking-[0.25em] uppercase">
+              <div className="col-span-full h-[420px] sm:h-[430px] md:h-[480px] rounded-2xl border border-white/10 bg-[#0f0f0f] flex items-center justify-center text-white/40 text-sm tracking-[0.25em] uppercase">
                 No featured villas yet
               </div>
             )}

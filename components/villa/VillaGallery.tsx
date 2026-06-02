@@ -70,25 +70,25 @@ export default function VillaGallery({
   return (
     <>
       {/* SECTION */}
-      <section className="bg-[#0a0a0a] py-32 overflow-hidden">
+      <section className="bg-[#0a0a0a] py-20 md:py-32 overflow-hidden">
 
         {/* HEADER */}
-        <div className="px-6 md:px-16 lg:px-24 mb-16">
+        <div className="px-5 sm:px-6 md:px-16 lg:px-24 mb-10 md:mb-16">
           <span className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase block mb-6">
             Gallery
           </span>
 
-          <h2 className="text-4xl md:text-6xl font-light text-white">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-light text-white">
             Cinematic Perspectives
           </h2>
         </div>
 
         {/* GRID */}
-        <div className="grid lg:grid-cols-[1.6fr_0.7fr] gap-6 px-6 md:px-16 lg:px-24">
+        <div className="grid lg:grid-cols-[1.6fr_0.7fr] gap-4 md:gap-6 px-5 sm:px-6 md:px-16 lg:px-24">
 
           {/* MAIN IMAGE */}
           <div
-            className="relative h-[760px] bg-black overflow-hidden cursor-pointer group"
+            className="relative h-[420px] sm:h-[520px] lg:h-[760px] bg-black overflow-hidden cursor-pointer group"
             onClick={() => setFullscreen(true)}
           >
             <Image
@@ -108,12 +108,12 @@ export default function VillaGallery({
           </div>
 
           {/* SIDE PREVIEWS */}
-          <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-3 lg:flex lg:flex-col gap-3 md:gap-6">
 
             {previewImages.map((image, index) => (
               <div
                 key={index}
-                className="relative h-[242px] bg-black overflow-hidden cursor-pointer group"
+                className="relative h-28 sm:h-36 lg:h-[242px] bg-black overflow-hidden cursor-pointer group"
                 onClick={nextSlide}
               >
                 <Image
@@ -139,20 +139,20 @@ export default function VillaGallery({
         </div>
 
         {/* CONTROLS */}
-        <div className="flex justify-between items-center mt-12 px-6 md:px-16 lg:px-24">
+        <div className="flex justify-between items-center mt-8 md:mt-12 px-5 sm:px-6 md:px-16 lg:px-24">
 
           {/* ARROWS */}
           <div className="flex items-center gap-4">
             <button
               onClick={prevSlide}
-              className="w-12 h-12 border border-white/10 flex items-center justify-center text-white hover:border-[#c9a962] hover:text-[#c9a962] transition-all duration-300"
+              className="w-11 h-11 md:w-12 md:h-12 border border-white/10 flex items-center justify-center text-white hover:border-[#c9a962] hover:text-[#c9a962] transition-all duration-300"
             >
               <ChevronLeft size={18} />
             </button>
 
             <button
               onClick={nextSlide}
-              className="w-12 h-12 border border-white/10 flex items-center justify-center text-white hover:border-[#c9a962] hover:text-[#c9a962] transition-all duration-300"
+              className="w-11 h-11 md:w-12 md:h-12 border border-white/10 flex items-center justify-center text-white hover:border-[#c9a962] hover:text-[#c9a962] transition-all duration-300"
             >
               <ChevronRight size={18} />
             </button>
@@ -165,8 +165,8 @@ export default function VillaGallery({
                 key={index}
                 className={`h-[2px] transition-all duration-500 ${
                   current === index
-                    ? "w-16 bg-[#c9a962]"
-                    : "w-8 bg-white/20"
+                    ? "w-10 md:w-16 bg-[#c9a962]"
+                    : "w-5 md:w-8 bg-white/20"
                 }`}
               />
             ))}
@@ -179,7 +179,7 @@ export default function VillaGallery({
         <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
 
           {/* IMAGE */}
-          <div className="relative w-full h-full flex items-center justify-center p-16">
+          <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 md:p-16">
             <Image
               src={gallery[current]}
               alt={title}
@@ -191,25 +191,25 @@ export default function VillaGallery({
           {/* CLOSE */}
           <button
             onClick={() => setFullscreen(false)}
-            className="absolute top-8 right-8 z-[10000] text-white hover:text-[#c9a962] transition-colors"
+            className="absolute top-5 right-5 md:top-8 md:right-4 md:right-8 z-[10000] text-white hover:text-[#c9a962] transition-colors"
           >
-            <X size={34} />
+            <X size={30} />
           </button>
 
           {/* LEFT */}
           <button
             onClick={prevSlide}
-            className="absolute left-8 z-[10000] text-white hover:text-[#c9a962] transition-colors"
+            className="absolute left-4 md:left-8 z-[10000] text-white hover:text-[#c9a962] transition-colors"
           >
-            <ChevronLeft size={46} />
+            <ChevronLeft size={38} />
           </button>
 
           {/* RIGHT */}
           <button
             onClick={nextSlide}
-            className="absolute right-8 z-[10000] text-white hover:text-[#c9a962] transition-colors"
+            className="absolute right-4 md:right-8 z-[10000] text-white hover:text-[#c9a962] transition-colors"
           >
-            <ChevronRight size={46} />
+            <ChevronRight size={38} />
           </button>
         </div>
       )}
