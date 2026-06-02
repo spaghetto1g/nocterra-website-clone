@@ -35,7 +35,7 @@ export default function Hero({ images, tagline, ctaLabel, sideLines }: HeroProps
   }, [heroImages.length])
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden">
+    <section className="relative min-h-[100svh] w-full overflow-hidden">
 
       {/* Background Image */}
       <div className="absolute inset-0">
@@ -51,20 +51,20 @@ export default function Hero({ images, tagline, ctaLabel, sideLines }: HeroProps
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 h-full min-h-screen flex flex-col items-center justify-center text-center px-6">
+      <div className="relative z-10 h-full min-h-[100svh] flex flex-col items-center justify-center text-center px-4 sm:px-6">
 
         {/* Brand */}
-        <h1 className="text-[#c9a962] text-4xl sm:text-5xl md:text-7xl tracking-[0.25em] md:tracking-[0.4em] font-light mb-6 font-serif">
+        <h1 className="text-[#c9a962] text-3xl sm:text-5xl md:text-7xl tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.4em] font-light mb-5 sm:mb-6 font-serif">
           NOCTERRA
         </h1>
 
         {/* Tagline */}
-        <p className="text-[#c9a962]/90 text-xs sm:text-sm md:text-base tracking-[0.25em] uppercase mb-12">
+        <p className="text-[#c9a962]/90 text-[10px] sm:text-sm md:text-base tracking-[0.18em] sm:tracking-[0.25em] uppercase mb-10 sm:mb-12 max-w-[90vw] leading-relaxed">
           {tagline || "Immersive Spaces. Timeless Experiences."}
         </p>
 
         {/* CTA */}
-        <Link href="/properties" className="border border-[#c9a962]/50 text-white/90 px-6 md:px-10 py-3 md:py-4 text-[10px] md:text-xs tracking-[0.25em] uppercase hover:bg-[#c9a962]/20 transition-all duration-500">
+        <Link href="/properties" className="border border-[#c9a962]/50 text-white/90 px-5 sm:px-6 md:px-10 py-3 md:py-4 text-[10px] md:text-xs tracking-[0.18em] sm:tracking-[0.25em] uppercase hover:bg-[#c9a962]/20 transition-all duration-500">
           {ctaLabel || "Discover Properties"}
         </Link>
       </div>

@@ -68,12 +68,12 @@ const menuItems = [
 
 export default function AdminDashboardPage() {
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-10">
+    <main className="min-h-screen bg-black text-white px-4 sm:px-6 py-8 sm:py-10">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between gap-6 mb-12">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10 sm:mb-12">
           <div>
             <p className="text-[#c9a962] uppercase tracking-[0.35em] text-xs mb-3">NOCTERRA Admin</p>
-            <h1 className="text-4xl md:text-5xl font-light">Control Panel</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-light">Control Panel</h1>
             <p className="text-white/45 mt-4 max-w-2xl">
               Manage villas, luxury stays, yachts, media, 360 tours and homepage visibility from one protected dashboard.
             </p>
@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group min-h-[220px] rounded-2xl border border-white/10 bg-[#0f0f0f] p-7 hover:border-[#c9a962]/50 transition-all duration-300"
+                className="group min-h-[190px] sm:min-h-[220px] rounded-2xl border border-white/10 bg-[#0f0f0f] p-7 hover:border-[#c9a962]/50 transition-all duration-300"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="h-12 w-12 rounded-full border border-[#c9a962]/30 flex items-center justify-center text-[#c9a962]">

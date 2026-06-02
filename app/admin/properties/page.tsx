@@ -200,8 +200,8 @@ export default function AdminPropertiesPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 text-white">
-      <div className="flex justify-between items-center mb-6 gap-4">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 text-white">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 gap-4">
         <div>
           <Link href="/admin" className="text-white/45 hover:text-[#c9a962] text-sm transition-colors">
             ← Admin menu
@@ -210,14 +210,14 @@ export default function AdminPropertiesPage() {
           <p className="text-white/40 text-sm mt-2">Villas stay separate from apartments, residences, suites and yachting.</p>
         </div>
 
-        <div className="flex flex-wrap gap-3 justify-end">
-          <Link href="/admin/properties/new?type=villa" className="px-4 py-2 bg-[#c9a86a] text-black">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 w-full lg:w-auto lg:justify-end">
+          <Link href="/admin/properties/new?type=villa" className="px-4 py-3 sm:py-2 bg-[#c9a86a] text-black text-center">
             + New Villa
           </Link>
-          <Link href="/admin/properties/new?type=apartment" className="px-4 py-2 border border-[#c9a86a] text-[#c9a86a]">
+          <Link href="/admin/properties/new?type=apartment" className="px-4 py-3 sm:py-2 border border-[#c9a86a] text-[#c9a86a] text-center">
             + New Apartment / Stay
           </Link>
-          <Link href="/admin/properties/new?type=yacht" className="px-4 py-2 border border-white/20 text-white/80 hover:border-[#c9a86a] hover:text-[#c9a86a] transition-colors">
+          <Link href="/admin/properties/new?type=yacht" className="px-4 py-3 sm:py-2 border border-white/20 text-white/80 hover:border-[#c9a86a] hover:text-[#c9a86a] transition-colors text-center">
             + New Yacht / Boat
           </Link>
         </div>
@@ -231,12 +231,12 @@ export default function AdminPropertiesPage() {
           className="flex-1 p-2 bg-black border border-white/20"
         />
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 max-w-full overflow-x-auto pb-1">
           {FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-2 border text-sm ${filter === f ? "border-yellow-500 text-yellow-400" : "border-white/20 text-white/70"}`}
+              className={`px-3 py-2 border text-sm whitespace-nowrap ${filter === f ? "border-yellow-500 text-yellow-400" : "border-white/20 text-white/70"}`}
             >
               {f === "stays" ? "apartments/stays" : f === "yachting" ? "yachts/boats" : f}
             </button>

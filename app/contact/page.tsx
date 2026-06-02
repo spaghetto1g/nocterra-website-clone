@@ -49,12 +49,12 @@ export default async function ContactPage() {
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
       <Header />
-      <section className="pt-40 pb-32 px-6">
+      <section className="pt-32 sm:pt-40 pb-24 md:pb-32 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="max-w-4xl mb-16">
+          <div className="max-w-4xl mb-10 md:mb-16">
             <p className="text-[#c9a962] uppercase tracking-[0.4em] text-xs mb-5 opacity-80">Contact</p>
-            <h1 className="text-5xl md:text-7xl font-light leading-tight mb-8">{settings.contact_title}</h1>
-            <p className="text-white/55 leading-relaxed text-lg max-w-3xl">{settings.contact_subtitle}</p>
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-light leading-tight mb-6 md:mb-8">{settings.contact_title}</h1>
+            <p className="text-white/55 leading-relaxed text-base sm:text-lg max-w-3xl">{settings.contact_subtitle}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -67,7 +67,7 @@ export default async function ContactPage() {
                   href={option.href}
                   target={option.href.startsWith("http") ? "_blank" : undefined}
                   rel={option.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  className="group min-h-[260px] rounded-2xl border border-white/10 bg-[#0f0f0f] p-7 hover:border-[#c9a962]/50 transition-all duration-300 flex flex-col justify-between"
+                  className="group min-h-[230px] sm:min-h-[260px] rounded-2xl border border-white/10 bg-[#0f0f0f] p-7 hover:border-[#c9a962]/50 transition-all duration-300 flex flex-col justify-between"
                 >
                   <div>
                     <div className="h-12 w-12 rounded-full border border-[#c9a962]/30 flex items-center justify-center text-[#c9a962] mb-8">
@@ -83,7 +83,7 @@ export default async function ContactPage() {
               ) : (
                 <div
                   key={option.title}
-                  className="min-h-[260px] rounded-2xl border border-white/5 bg-[#0f0f0f]/40 p-7 opacity-45 flex flex-col justify-between"
+                  className="min-h-[230px] sm:min-h-[260px] rounded-2xl border border-white/5 bg-[#0f0f0f]/40 p-7 opacity-45 flex flex-col justify-between"
                 >
                   <div>
                     <div className="h-12 w-12 rounded-full border border-white/10 flex items-center justify-center text-white/30 mb-8">

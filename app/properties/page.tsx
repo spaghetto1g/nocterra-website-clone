@@ -31,7 +31,7 @@ function PropertyCard({ property }: { property: Villa }) {
   return (
     <Link
       href={`/villas/${property.slug}`}
-      className="group relative overflow-hidden rounded-2xl bg-[#0f0f0f] h-[480px] border border-white/10 transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+      className="group relative overflow-hidden rounded-2xl bg-[#0f0f0f] h-[360px] sm:h-[430px] md:h-[480px] border border-white/10 transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
     >
       <Image
         src={property.heroImage || property.hero_image || "/placeholder.jpg"}
@@ -40,11 +40,11 @@ function PropertyCard({ property }: { property: Villa }) {
         className="object-cover transition-transform duration-700 group-hover:scale-110"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-      <div className="absolute bottom-0 p-7 w-full">
+      <div className="absolute bottom-0 p-5 sm:p-7 w-full">
         <p className="text-white/60 text-xs uppercase tracking-[0.3em] mb-2">
           {getTypeLabel(property.property_type)} · {property.location || "NOCTERRA"}
         </p>
-        <h2 className="text-2xl font-light text-white mb-3">{property.title}</h2>
+        <h2 className="text-xl sm:text-2xl font-light text-white mb-3">{property.title}</h2>
         <div className="flex flex-wrap gap-5 text-white/50 text-sm mb-5">
           <span>{property.bedrooms || 0} beds</span>
           <span>{property.bathrooms || 0} baths</span>
@@ -72,11 +72,11 @@ function Section({
   items: Villa[]
 }) {
   return (
-    <section id={id} className="mb-24 scroll-mt-28">
-      <div className="flex items-end justify-between gap-8 border-b border-white/10 pb-6 mb-10">
+    <section id={id} className="mb-16 md:mb-24 scroll-mt-28">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 md:gap-8 border-b border-white/10 pb-6 mb-10">
         <div>
           <p className="text-[#c9a962] uppercase tracking-[0.35em] text-xs mb-4 opacity-80">{eyebrow}</p>
-          <h2 className="text-3xl md:text-5xl font-light">{title}</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light">{title}</h2>
           <p className="text-white/45 mt-4 max-w-2xl leading-relaxed">{description}</p>
         </div>
         <span className="hidden md:block text-white/25 text-sm">{items.length} active</span>
@@ -100,14 +100,14 @@ function Section({
 function DisabledYachtSection({ description }: { description: string }) {
   return (
     <section id="yachts" className="mb-24 scroll-mt-28 opacity-75">
-      <div className="rounded-3xl border border-[#c9a962]/20 bg-[#0f0f0f] p-10 md:p-14 relative overflow-hidden">
+      <div className="rounded-3xl border border-[#c9a962]/20 bg-[#0f0f0f] p-6 sm:p-10 md:p-14 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#c9a962]/10 via-transparent to-transparent" />
         <div className="relative z-10 max-w-3xl">
           <div className="h-12 w-12 rounded-full border border-[#c9a962]/30 flex items-center justify-center text-[#c9a962] mb-8">
             <Anchor size={20} />
           </div>
           <p className="text-[#c9a962] uppercase tracking-[0.35em] text-xs mb-4">Coming soon</p>
-          <h2 className="text-3xl md:text-5xl font-light">Yachts & Luxury Boats</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light">Yachts & Luxury Boats</h2>
           <p className="text-white/45 mt-5 leading-relaxed">
             {description}
           </p>
@@ -135,22 +135,22 @@ function CollectionNav({
   ]
 
   return (
-    <section className="pb-8 px-6">
+    <section className="pb-8 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="rounded-3xl border border-white/10 bg-[#0f0f0f] px-5 py-5 md:px-7 md:py-6">
+        <div className="rounded-3xl border border-white/10 bg-[#0f0f0f] px-4 py-5 sm:px-5 md:px-7 md:py-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[#c9a962] uppercase tracking-[0.35em] text-[10px] mb-2 opacity-80">Explore by collection</p>
               <p className="text-white/45 text-sm leading-relaxed max-w-xl">{description}</p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
               {items.map((item) =>
                 item.enabled ? (
                   <a
                     key={item.label}
                     href={item.href}
-                    className="inline-flex items-center gap-3 rounded-full border border-[#c9a962]/50 px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-[#c9a962] transition-all duration-300 hover:bg-[#c9a962] hover:text-black"
+                    className="inline-flex items-center justify-center gap-3 rounded-full border border-[#c9a962]/50 px-4 sm:px-5 py-3 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-[#c9a962] transition-all duration-300 hover:bg-[#c9a962] hover:text-black"
                   >
                     {item.label}
                     <span className="text-[10px] opacity-70">{item.count}</span>
@@ -158,7 +158,7 @@ function CollectionNav({
                 ) : (
                   <span
                     key={item.label}
-                    className="inline-flex cursor-not-allowed items-center gap-3 rounded-full border border-white/10 px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-white/25"
+                    className="inline-flex cursor-not-allowed items-center justify-center gap-3 rounded-full border border-white/10 px-4 sm:px-5 py-3 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-white/25"
                     aria-disabled="true"
                   >
                     {item.label}
@@ -185,12 +185,12 @@ export default async function PropertiesPage() {
     <main className="min-h-screen bg-[#0a0a0a] text-white">
       <Header />
 
-      <section className="pt-40 pb-24 px-6">
+      <section className="pt-32 sm:pt-40 pb-16 md:pb-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <p className="text-[#c9a962] uppercase tracking-[0.4em] text-xs mb-5 opacity-80">
             {settings.properties_eyebrow}
           </p>
-          <h1 className="text-5xl md:text-7xl font-light leading-tight max-w-4xl">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-light leading-tight max-w-4xl">
             {settings.properties_title}
           </h1>
           <p className="text-white/50 mt-6 max-w-2xl leading-relaxed">
@@ -201,7 +201,7 @@ export default async function PropertiesPage() {
 
       <CollectionNav villasCount={villas.length} staysCount={stays.length} yachtsCount={yachts.length} description={settings.properties_nav_description} />
 
-      <section className="pb-32 px-6">
+      <section className="pb-24 md:pb-32 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Section
             id="villas"

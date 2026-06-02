@@ -321,9 +321,9 @@ export default function VillaClient({ villa }: VillaClientProps) {
 
   return (
     <div className="text-white bg-black">
-      <div className="w-full h-[80vh] relative overflow-hidden bg-black">
-        <Link href="/" className="absolute top-6 left-6 z-20 flex items-center">
-          <span className="text-lg tracking-[0.3em] font-light">
+      <div className="w-full h-[70svh] md:h-[80vh] relative overflow-hidden bg-black">
+        <Link href="/" className="absolute top-5 left-4 sm:top-6 sm:left-6 z-20 flex items-center">
+          <span className="text-base sm:text-lg tracking-[0.24em] sm:tracking-[0.3em] font-light">
             <span className="text-[#c9a962]">N</span>
             <span className="text-white">OCTERRA</span>
           </span>
@@ -334,10 +334,10 @@ export default function VillaClient({ villa }: VillaClientProps) {
 
         {heroImages.length > 1 && (
           <>
-            <button type="button" onClick={prevHeroImage} className="absolute left-6 top-1/2 -translate-y-1/2 z-20 text-4xl text-white/70 hover:text-white">
+            <button type="button" onClick={prevHeroImage} className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 text-4xl text-white/70 hover:text-white">
               ‹
             </button>
-            <button type="button" onClick={nextHeroImage} className="absolute right-6 top-1/2 -translate-y-1/2 z-20 text-4xl text-white/70 hover:text-white">
+            <button type="button" onClick={nextHeroImage} className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 text-4xl text-white/70 hover:text-white">
               ›
             </button>
 
@@ -354,13 +354,13 @@ export default function VillaClient({ villa }: VillaClientProps) {
           </>
         )}
 
-        <div className="absolute bottom-10 left-10 z-20">
-          <h1 className="text-4xl font-light">{title}</h1>
+        <div className="absolute bottom-8 left-4 right-4 sm:bottom-10 sm:left-10 sm:right-auto z-20">
+          <h1 className="text-3xl sm:text-4xl font-light">{title}</h1>
           <p className="text-gray-300">{location}</p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-5 text-center border-b border-white/10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6 grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-0 text-center border-b border-white/10 text-xs sm:text-sm text-white/75">
         {isYacht ? (
           <>
             <div>Cabins: {safeNumber(villa?.cabins)}</div>
@@ -380,9 +380,9 @@ export default function VillaClient({ villa }: VillaClientProps) {
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2 relative h-[500px] overflow-hidden bg-black">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6">
+          <div className="md:col-span-2 relative h-[340px] sm:h-[430px] md:h-[500px] overflow-hidden bg-black">
             <ImageWithFallback
               src={safeImage}
               alt={title}
@@ -390,15 +390,15 @@ export default function VillaClient({ villa }: VillaClientProps) {
               onClick={() => openImage(activeImage)}
             />
 
-            <button type="button" onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 text-4xl text-white/80 hover:text-white">
+            <button type="button" onClick={prevImage} className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-4xl text-white/80 hover:text-white">
               ‹
             </button>
-            <button type="button" onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 text-4xl text-white/80 hover:text-white">
+            <button type="button" onClick={nextImage} className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-4xl text-white/80 hover:text-white">
               ›
             </button>
           </div>
 
-          <div className="flex flex-col gap-2 h-[500px] overflow-hidden">
+          <div className="grid grid-cols-3 md:flex md:flex-col gap-2 h-[110px] sm:h-[140px] md:h-[500px] overflow-hidden">
             {sideImages.map((img, i) => {
               const imageIndex = (activeImage + i + 1) % images.length
 
@@ -408,7 +408,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
                   src={img}
                   alt={`${title} gallery ${i + 1}`}
                   onClick={() => openImage(imageIndex)}
-                  className="h-[161px] w-full object-cover cursor-pointer border border-transparent hover:border-yellow-500"
+                  className="h-full md:h-[161px] w-full object-cover cursor-pointer border border-transparent hover:border-yellow-500"
                 />
               )
             })}
@@ -419,7 +419,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
 
 
       {isYacht && yachtDetails.length > 0 && (
-        <div className="max-w-6xl mx-auto px-6 py-8 border-t border-white/10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 border-t border-white/10">
           <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-5">Yacht Details</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {yachtDetails.map((detail) => (
@@ -432,7 +432,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto px-6 flex flex-wrap gap-2 border-t border-white/10 py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-wrap gap-2 border-t border-white/10 py-6">
         {amenities.length > 0 ? (
           amenities.map((a, i) => (
             <span key={`${a}-${i}`} className="px-3 py-1 border border-white/20 text-sm">
@@ -444,7 +444,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-2 gap-6 border-t border-white/10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-6 border-t border-white/10">
         <div>
           <h2 className="text-2xl mb-3">About</h2>
           <p className="text-gray-300">{description}</p>
@@ -454,7 +454,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
           <h2 className="text-2xl mb-3">360</h2>
 
           {tourData ? (
-            <div className="relative h-[400px] w-full overflow-hidden border border-white/10 bg-black">
+            <div className="relative h-[300px] sm:h-[360px] lg:h-[400px] w-full overflow-hidden border border-white/10 bg-black">
               {tourData.kind === "iframe" ? (
                 <iframe
                   src={tourData.src}
@@ -496,14 +496,14 @@ export default function VillaClient({ villa }: VillaClientProps) {
               </a>
             </div>
           ) : (
-            <div className="h-[400px] flex items-center justify-center border border-white/20 text-gray-500 bg-black overflow-hidden">
+            <div className="h-[300px] sm:h-[360px] lg:h-[400px] flex items-center justify-center border border-white/20 text-gray-500 bg-black overflow-hidden">
               360 Tour Coming Soon
             </div>
           )}
         </div>
       </div>
 
-      <section className="max-w-6xl mx-auto px-6 py-12 border-t border-white/10">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 border-t border-white/10">
         <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.4fr] gap-6 items-stretch">
           <div className="bg-[#0b0b0b] border border-white/10 px-6 md:px-8 py-8 flex flex-col justify-between">
             <div>
@@ -548,7 +548,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
 
 
       {showPropertyActions && (
-        <section className="max-w-6xl mx-auto px-6 py-12 border-t border-white/10">
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 border-t border-white/10">
           <div className="bg-[#0b0b0b] border border-white/10 px-6 md:px-10 py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
             <div>
               <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-3">Private Access</p>
@@ -593,14 +593,14 @@ export default function VillaClient({ villa }: VillaClientProps) {
       )}
 
       {open && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50" onClick={() => setOpen(false)}>
-          <button type="button" className="absolute top-6 right-6 text-4xl text-white/80 hover:text-white" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 px-4" onClick={() => setOpen(false)}>
+          <button type="button" className="absolute top-5 right-5 sm:top-6 sm:right-6 text-4xl text-white/80 hover:text-white" onClick={() => setOpen(false)}>
             ×
           </button>
 
           <button
             type="button"
-            className="absolute left-5 text-4xl text-white/80 hover:text-white"
+            className="absolute left-3 sm:left-5 text-4xl text-white/80 hover:text-white"
             onClick={(e) => {
               e.stopPropagation()
               prevImage()
@@ -618,7 +618,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
 
           <button
             type="button"
-            className="absolute right-5 text-4xl text-white/80 hover:text-white"
+            className="absolute right-3 sm:right-5 text-4xl text-white/80 hover:text-white"
             onClick={(e) => {
               e.stopPropagation()
               nextImage()

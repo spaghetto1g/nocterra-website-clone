@@ -5,9 +5,9 @@ export default async function FeaturedProperties() {
   const villas = await getAllVillas()
 
   return (
-    <section className="py-32 bg-[#0a0a0a]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="mb-16">
+    <section className="py-20 md:py-32 bg-[#0a0a0a]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="mb-10 md:mb-16">
           <p className="text-[#c9a962] uppercase tracking-[0.4em] text-xs mb-5 opacity-80">
             Featured Properties
           </p>

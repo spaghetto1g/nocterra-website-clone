@@ -50,7 +50,7 @@ export default function FeaturedPropertiesCarousel({ villas }: { villas: Feature
   }
 
   return (
-    <div className="grid grid-cols-12 gap-8 lg:gap-10 items-start">
+    <div className="grid grid-cols-12 gap-6 lg:gap-10 items-start">
       <div className="col-span-12 lg:col-span-9">
         <div className="relative">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6">
@@ -64,7 +64,7 @@ export default function FeaturedPropertiesCarousel({ villas }: { villas: Feature
                   overflow-hidden
                   rounded-2xl
                   bg-[#0f0f0f]
-                  h-[480px]
+                  h-[360px] sm:h-[430px] md:h-[480px]
                   border border-white/10
                   transition-all duration-500
                   hover:border-white/20
@@ -81,12 +81,12 @@ export default function FeaturedPropertiesCarousel({ villas }: { villas: Feature
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-                <div className="absolute bottom-0 p-7 w-full">
+                <div className="absolute bottom-0 p-5 sm:p-7 w-full">
                   <p className="text-white/60 text-xs uppercase tracking-[0.3em] mb-2">
                     {villa.location || "Luxury Destination"}
                   </p>
 
-                  <h3 className="text-2xl font-light text-white mb-3">
+                  <h3 className="text-xl sm:text-2xl font-light text-white mb-3">
                     {villa.title || "Untitled Villa"}
                   </h3>
 
@@ -100,14 +100,14 @@ export default function FeaturedPropertiesCarousel({ villas }: { villas: Feature
             ))}
 
             {currentVillas.length === 0 && (
-              <div className="col-span-full h-[480px] rounded-2xl border border-white/10 bg-[#0f0f0f] flex items-center justify-center text-white/40 text-sm tracking-[0.25em] uppercase">
+              <div className="col-span-full h-[360px] sm:h-[430px] md:h-[480px] rounded-2xl border border-white/10 bg-[#0f0f0f] flex items-center justify-center text-white/40 text-sm tracking-[0.25em] uppercase">
                 No featured villas yet
               </div>
             )}
           </div>
 
           {hasMultiplePages && (
-            <div className="mt-8 flex items-center justify-between">
+            <div className="mt-6 sm:mt-8 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -137,7 +137,7 @@ export default function FeaturedPropertiesCarousel({ villas }: { villas: Feature
       </div>
 
       <div className="col-span-12 lg:col-span-3">
-        <div className="h-[480px] flex items-stretch">
+        <div className="h-[360px] sm:h-[430px] lg:h-[480px] flex items-stretch">
           <ThreeSixtyCard />
         </div>
       </div>
