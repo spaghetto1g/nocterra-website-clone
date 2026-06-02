@@ -88,14 +88,14 @@ export default function VillaGallery({
 
           {/* MAIN IMAGE */}
           <div
-            className="relative h-[420px] sm:h-[520px] lg:h-[760px] bg-black overflow-hidden cursor-pointer group"
+            className="relative h-[420px] sm:h-[520px] lg:h-[760px] bg-black overflow-hidden cursor-pointer group border border-white/10 transition-all duration-500 hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
             onClick={() => setFullscreen(true)}
           >
             <Image
               src={gallery[current]}
               alt={title}
               fill
-              className="object-contain group-hover:scale-[1.01] transition-transform duration-700"
+              className="object-contain transition-transform duration-700 group-hover:scale-105"
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
@@ -113,14 +113,14 @@ export default function VillaGallery({
             {previewImages.map((image, index) => (
               <div
                 key={index}
-                className="relative h-28 sm:h-36 lg:h-[242px] bg-black overflow-hidden cursor-pointer group"
-                onClick={nextSlide}
+                className="relative h-28 sm:h-36 lg:h-[242px] bg-black overflow-hidden cursor-pointer group border border-white/10 transition-all duration-500 hover:border-white/20 hover:shadow-[0_14px_38px_rgba(0,0,0,0.45)]"
+                onClick={() => setCurrent((current + index + 1) % gallery.length)}
               >
                 <Image
                   src={image}
                   alt=""
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
 
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/5 transition-all duration-500" />

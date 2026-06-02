@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
 const STATUS_OPTIONS = ["active", "archived", "draft"] as const
@@ -54,6 +54,7 @@ type VillaFormProps = {
   initialData?: Partial<VillaFormData> | null
   onSave: (data: VillaFormData) => Promise<void> | void
   submitLabel?: string
+  persistKey?: string
 }
 
 function slugify(value: string) {
@@ -138,7 +139,57 @@ const emptyForm: VillaFormData = {
   featured: false,
 }
 
-export default function VillaForm({ initialData, onSave, submitLabel = "Save Villa" }: VillaFormProps) {
+function buildFormFromInitial(initialData?: Partial<VillaFormData> | null): VillaFormData {
+  if (!initialData) return { ...emptyForm }
+
+  const savedHeroImages = toStringArray(initialData.hero_images)
+  const legacyHero = typeof initialData.hero_image === "string" ? initialData.hero_image.trim() : ""
+  const heroImages = uniqueImages([...savedHeroImages, legacyHero])
+
+  return {
+    title: initialData.title ?? "",
+    slug: initialData.slug ?? "",
+    location: initialData.location ?? "",
+    property_type: initialData.property_type ?? "villa",
+    description: initialData.description ?? "",
+    hero_image: legacyHero || heroImages[0] || "",
+    hero_images: heroImages,
+    gallery: toStringArray(initialData.gallery),
+    bedrooms: toNumberOrEmpty(initialData.bedrooms),
+    bathrooms: toNumberOrEmpty(initialData.bathrooms),
+    guests: toNumberOrEmpty(initialData.guests),
+    sqft: toNumberOrEmpty(initialData.sqft),
+    pool: Boolean(initialData.pool),
+    amenities: toStringArray(initialData.amenities),
+    latitude: toCoordinate(initialData.latitude),
+    longitude: toCoordinate(initialData.longitude),
+    tour_link: initialData.tour_link ?? "",
+    rent_url: initialData.rent_url ?? "",
+    social_url: initialData.social_url ?? "",
+    sale_interest_enabled: Boolean(initialData.sale_interest_enabled),
+    yacht_route: (initialData as any).yacht_route ?? "",
+    departure_port: (initialData as any).departure_port ?? "",
+    max_passengers: toNumberOrEmpty((initialData as any).max_passengers),
+    crew: toNumberOrEmpty((initialData as any).crew),
+    cabins: toNumberOrEmpty((initialData as any).cabins),
+    yacht_length: (initialData as any).yacht_length ?? "",
+    charter_price: (initialData as any).charter_price ?? "",
+    status: initialData.status ?? "active",
+    featured: Boolean(initialData.featured),
+  }
+}
+
+function parsePersistedForm(value: string | null): Partial<VillaFormData> | null {
+  if (!value) return null
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === "object" ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+export default function VillaForm({ initialData, onSave, submitLabel = "Save Villa", persistKey }: VillaFormProps) {
   const supabase = useMemo(() => createClient(), [])
   const [form, setForm] = useState<VillaFormData>(emptyForm)
   const [heroInput, setHeroInput] = useState("")
@@ -148,49 +199,29 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
   const [uploadingHero, setUploadingHero] = useState(false)
   const [uploadingGallery, setUploadingGallery] = useState(false)
   const [uploadError, setUploadError] = useState("")
+  const draftReady = useRef(false)
 
   useEffect(() => {
-    if (!initialData) {
-      setForm(emptyForm)
-      return
-    }
+    draftReady.current = false
 
-    const savedHeroImages = toStringArray(initialData.hero_images)
-    const legacyHero = typeof initialData.hero_image === "string" ? initialData.hero_image.trim() : ""
-    const heroImages = uniqueImages([...savedHeroImages, legacyHero])
+    const baseForm = buildFormFromInitial(initialData)
+    const persisted = typeof window !== "undefined" && persistKey ? parsePersistedForm(window.localStorage.getItem(persistKey)) : null
 
     setForm({
-      title: initialData.title ?? "",
-      slug: initialData.slug ?? "",
-      location: initialData.location ?? "",
-      property_type: initialData.property_type ?? "villa",
-      description: initialData.description ?? "",
-      hero_image: legacyHero || heroImages[0] || "",
-      hero_images: heroImages,
-      gallery: toStringArray(initialData.gallery),
-      bedrooms: toNumberOrEmpty(initialData.bedrooms),
-      bathrooms: toNumberOrEmpty(initialData.bathrooms),
-      guests: toNumberOrEmpty(initialData.guests),
-      sqft: toNumberOrEmpty(initialData.sqft),
-      pool: Boolean(initialData.pool),
-      amenities: toStringArray(initialData.amenities),
-      latitude: toCoordinate(initialData.latitude),
-      longitude: toCoordinate(initialData.longitude),
-      tour_link: initialData.tour_link ?? "",
-      rent_url: initialData.rent_url ?? "",
-      social_url: initialData.social_url ?? "",
-      sale_interest_enabled: Boolean(initialData.sale_interest_enabled),
-      yacht_route: (initialData as any).yacht_route ?? "",
-      departure_port: (initialData as any).departure_port ?? "",
-      max_passengers: toNumberOrEmpty((initialData as any).max_passengers),
-      crew: toNumberOrEmpty((initialData as any).crew),
-      cabins: toNumberOrEmpty((initialData as any).cabins),
-      yacht_length: (initialData as any).yacht_length ?? "",
-      charter_price: (initialData as any).charter_price ?? "",
-      status: initialData.status ?? "active",
-      featured: Boolean(initialData.featured),
+      ...baseForm,
+      ...(persisted ?? {}),
+      property_type: persisted?.property_type || baseForm.property_type,
     })
-  }, [initialData])
+
+    window.setTimeout(() => {
+      draftReady.current = true
+    }, 0)
+  }, [initialData, persistKey])
+
+  useEffect(() => {
+    if (!persistKey || !draftReady.current || typeof window === "undefined") return
+    window.localStorage.setItem(persistKey, JSON.stringify(form))
+  }, [form, persistKey])
 
   const suggestedSlug = useMemo(() => slugify(form.title), [form.title])
 
@@ -364,6 +395,11 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
 
     try {
       await onSave(payload)
+      if (persistKey && typeof window !== "undefined") {
+        window.localStorage.removeItem(persistKey)
+      }
+    } catch (error: any) {
+      alert(error?.message || "Save failed. Please try again.")
     } finally {
       setSaving(false)
     }

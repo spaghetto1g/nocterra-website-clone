@@ -40,7 +40,7 @@ export default function NewVillaPage() {
       .insert({
         title: data.title,
         slug: data.slug,
-        location: data.location || null,
+        location: data.location || "",
         property_type: data.property_type || initialType,
         description: data.description || null,
         hero_image: data.hero_image || null,
@@ -70,8 +70,7 @@ export default function NewVillaPage() {
       })
 
     if (error) {
-      alert(error.message)
-      return
+      throw new Error(error.message)
     }
 
     router.push(initialType === "villa" ? "/admin/properties?filter=villa" : initialType === "yacht" || initialType === "luxury_boat" ? "/admin/properties?filter=yachting" : "/admin/properties?filter=stays")
@@ -89,7 +88,7 @@ export default function NewVillaPage() {
           <h1 className="text-4xl font-light">{titleForType(initialType)}</h1>
         </div>
 
-        <VillaForm initialData={{ property_type: initialType }} onSave={handleSave} submitLabel={titleForType(initialType)} />
+        <VillaForm initialData={{ property_type: initialType }} onSave={handleSave} submitLabel={titleForType(initialType)} persistKey={`nocterra-new-property-draft-${initialType}`} />
       </div>
     </div>
   )

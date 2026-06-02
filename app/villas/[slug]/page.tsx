@@ -1,6 +1,9 @@
 import { supabase } from "@/lib/supabase"
 import VillaClient from "./VillaClient"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function VillaPage({ params }: any) {
   const resolvedParams = await Promise.resolve(params)
   const slug = resolvedParams.slug

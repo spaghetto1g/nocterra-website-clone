@@ -7,6 +7,9 @@ import { getActiveVillas, type Villa } from "@/lib/villas"
 import { getSiteSettings } from "@/lib/site-settings"
 import MobilePropertyCarousel from "@/components/mobile-property-carousel"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 const STAY_TYPES = ["residence", "apartment", "penthouse", "suite"]
 const YACHT_TYPES = ["yacht", "luxury_boat"]
 

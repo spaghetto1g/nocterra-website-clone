@@ -56,7 +56,7 @@ export default function EditVillaPage({ params }: EditVillaPageProps) {
       .update({
         title: data.title,
         slug: data.slug,
-        location: data.location || null,
+        location: data.location || "",
         property_type: data.property_type || "villa",
         description: data.description || null,
         hero_image: data.hero_image || null,
@@ -87,8 +87,7 @@ export default function EditVillaPage({ params }: EditVillaPageProps) {
       .eq("id", id)
 
     if (error) {
-      alert(error.message)
-      return
+      throw new Error(error.message)
     }
 
     router.push("/admin/properties")
