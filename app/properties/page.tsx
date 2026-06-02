@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ArrowRight, Anchor } from "lucide-react"
 import { getActiveVillas, type Villa } from "@/lib/villas"
 import { getSiteSettings } from "@/lib/site-settings"
+import MobilePropertyCarousel from "@/components/mobile-property-carousel"
 
 const STAY_TYPES = ["residence", "apartment", "penthouse", "suite"]
 const YACHT_TYPES = ["yacht", "luxury_boat"]
@@ -83,11 +84,17 @@ function Section({
       </div>
 
       {items.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {items.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
+        <>
+          <div className="md:hidden">
+            <MobilePropertyCarousel items={items} />
+          </div>
+
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {items.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        </>
       ) : (
         <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] px-8 py-12 text-white/35">
           No active properties in this category yet.
