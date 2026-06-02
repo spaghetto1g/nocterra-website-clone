@@ -11,12 +11,13 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
+
+    const supabase = createClient()
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -26,15 +27,16 @@ export default function AdminLoginPage() {
     if (error) {
       setError(error.message)
       setLoading(false)
-    } else {
-      router.push("/admin")
+      return
     }
+
+    router.replace("/admin")
+    router.refresh()
   }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-6">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-12">
           <Link href="/" className="inline-block">
             <span className="text-2xl tracking-[0.3em] font-light">
@@ -45,7 +47,6 @@ export default function AdminLoginPage() {
           <p className="text-white/30 text-sm mt-4 tracking-wider uppercase">Admin Portal</p>
         </div>
 
-        {/* Login Form */}
         <div className="bg-[#0f0f0f] border border-white/5 rounded-2xl p-8">
           <h1 className="text-2xl font-light text-white mb-2">Welcome back</h1>
           <p className="text-white/40 text-sm mb-8">Sign in to manage your properties</p>
@@ -101,7 +102,6 @@ export default function AdminLoginPage() {
           </div>
         </div>
 
-        {/* Sign Up Link */}
         <p className="text-center text-white/30 text-sm mt-8">
           Don&apos;t have an account?{" "}
           <Link href="/admin/signup" className="text-[#c9a962] hover:underline">

@@ -1,17 +1,24 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 
 export function useRole() {
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadRole() {
-      const { data: userData } = await supabase.auth.getUser()
+    let isMounted = true
+    const supabase = createClient()
 
-      const user = userData?.user
+    async function loadRole() {
+      setLoading(true)
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!isMounted) return
 
       if (!user) {
         setRole(null)
@@ -19,17 +26,34 @@ export function useRole() {
         return
       }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single()
+        .maybeSingle()
+
+      if (!isMounted) return
+
+      if (error) {
+        console.warn("Unable to load admin role. Falling back to editor.", error.message)
+      }
 
       setRole(data?.role || "editor")
       setLoading(false)
     }
 
     loadRole()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      loadRole()
+    })
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   return { role, loading }

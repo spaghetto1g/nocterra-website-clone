@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 import { useRole } from "@/lib/useRole"
 
 export default function AdminLayout({
@@ -12,33 +12,56 @@ export default function AdminLayout({
 }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { role, loading } = useRole()
+  const { role, loading: roleLoading } = useRole()
+  const [checkingSession, setCheckingSession] = useState(true)
 
   const isAuthPage = pathname === "/admin/login" || pathname === "/admin/signup"
 
   useEffect(() => {
-    if (isAuthPage) return
+    const supabase = createClient()
 
     async function checkUser() {
-      const { data } = await supabase.auth.getUser()
-
-      if (!data.user) {
-        router.push("/admin/login")
+      if (isAuthPage) {
+        setCheckingSession(false)
+        return
       }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.replace("/admin/login")
+        return
+      }
+
+      setCheckingSession(false)
     }
 
     checkUser()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isAuthPage && !session?.user) {
+        router.replace("/admin/login")
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [isAuthPage, router])
 
   useEffect(() => {
-    if (isAuthPage || loading) return
+    if (isAuthPage || checkingSession || roleLoading) return
 
     if (role === null) {
-      router.push("/admin/login")
+      router.replace("/admin/login")
     }
-  }, [role, loading, isAuthPage, router])
+  }, [role, roleLoading, checkingSession, isAuthPage, router])
 
-  if (!isAuthPage && loading) {
+  if (!isAuthPage && (checkingSession || roleLoading)) {
     return <div className="min-h-screen bg-black text-white p-10">Loading...</div>
   }
 
