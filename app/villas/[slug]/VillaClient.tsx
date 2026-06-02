@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import type { MouseEvent } from "react"
+import type { FormEvent, MouseEvent } from "react"
 import { useEffect, useMemo, useState } from "react"
 
 const FALLBACK_IMAGE = "/placeholder.jpg"
@@ -237,6 +237,14 @@ export default function VillaClient({ villa }: VillaClientProps) {
   const [activeImage, setActiveImage] = useState(0)
   const [heroImageIndex, setHeroImageIndex] = useState(0)
   const [open, setOpen] = useState(false)
+  const [isSpecialRequestOpen, setIsSpecialRequestOpen] = useState(false)
+  const [specialRequestForm, setSpecialRequestForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    dates: "",
+    message: "",
+  })
   const [homeHref, setHomeHref] = useState("/")
 
   useEffect(() => {
@@ -623,6 +631,16 @@ export default function VillaClient({ villa }: VillaClientProps) {
                 >
                   Interested in buying
                 </a>
+              )}
+
+              {specialRequestEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setIsSpecialRequestOpen(true)}
+                  className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[11px] uppercase tracking-[0.22em] text-white transition-all duration-300 hover:border-[#c9a962]/70 hover:text-[#c9a962]"
+                >
+                  {specialRequestLabel}
+                </button>
               )}
             </div>
           </div>
