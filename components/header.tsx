@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 const navItems = [
   { href: "/properties", label: "Properties" },
@@ -14,11 +14,20 @@ const navItems = [
 
 export default function Header() {
   const [open, setOpen] = useState(false)
+  const [homeHref, setHomeHref] = useState("/")
+
+  useEffect(() => {
+    const hostname = window.location.hostname.toLowerCase()
+    const isNocterraSubdomain =
+      hostname.endsWith(".nocterra.gr") && hostname !== "nocterra.gr" && hostname !== "www.nocterra.gr"
+
+    setHomeHref(isNocterraSubdomain ? "https://nocterra.gr/" : "/")
+  }, [])
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-sm">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center shrink-0" onClick={() => setOpen(false)}>
+        <Link href={homeHref} className="flex items-center shrink-0" onClick={() => setOpen(false)}>
           <span className="text-base sm:text-lg tracking-[0.24em] sm:tracking-[0.3em] font-light">
             <span className="text-[#c9a962]">N</span>
             <span className="text-white">OCTERRA</span>

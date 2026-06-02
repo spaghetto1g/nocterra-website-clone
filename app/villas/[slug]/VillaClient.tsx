@@ -218,6 +218,15 @@ export default function VillaClient({ villa }: VillaClientProps) {
   const [activeImage, setActiveImage] = useState(0)
   const [heroImageIndex, setHeroImageIndex] = useState(0)
   const [open, setOpen] = useState(false)
+  const [homeHref, setHomeHref] = useState("/")
+
+  useEffect(() => {
+    const hostname = window.location.hostname.toLowerCase()
+    const isNocterraSubdomain =
+      hostname.endsWith(".nocterra.gr") && hostname !== "nocterra.gr" && hostname !== "www.nocterra.gr"
+
+    setHomeHref(isNocterraSubdomain ? "https://nocterra.gr/" : "/")
+  }, [])
 
   const title = safeText(villa?.title, "NOCTERRA Villa")
   const location = safeText(villa?.location)
@@ -322,7 +331,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
   return (
     <div className="text-white bg-black">
       <div className="w-full h-[70svh] md:h-[80vh] relative overflow-hidden bg-black">
-        <Link href="/" className="absolute top-5 left-4 sm:top-6 sm:left-6 z-20 flex items-center">
+        <Link href={homeHref} className="absolute top-5 left-4 sm:top-6 sm:left-6 z-20 flex items-center">
           <span className="text-base sm:text-lg tracking-[0.24em] sm:tracking-[0.3em] font-light">
             <span className="text-[#c9a962]">N</span>
             <span className="text-white">OCTERRA</span>
