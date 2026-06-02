@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import type { FormEvent, MouseEvent } from "react"
+import type { MouseEvent } from "react"
 import { useEffect, useMemo, useState } from "react"
 
 const FALLBACK_IMAGE = "/placeholder.jpg"
@@ -167,25 +167,6 @@ function createMapData(latitude: number | null, longitude: number | null) {
   }
 }
 
-function createSpecialRequestMailto(email: string, title: string, location: string, form: { name: string; email: string; phone: string; dates: string; message: string }) {
-  const to = email || "info@nocterra.gr"
-  const subject = `Special request for ${title}`
-  const body = [
-    `Property: ${title}`,
-    location ? `Location: ${location}` : null,
-    "",
-    `Name: ${form.name}`,
-    `Email: ${form.email}`,
-    `Phone / WhatsApp: ${form.phone}`,
-    `Preferred dates: ${form.dates}`,
-    "",
-    "Request:",
-    form.message,
-  ].filter(Boolean).join("\n")
-
-  return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-}
-
 function createPurchaseMailto(title: string, location: string) {
   const subject = `Purchase interest: ${title}`
   const body = [
@@ -237,14 +218,6 @@ export default function VillaClient({ villa }: VillaClientProps) {
   const [activeImage, setActiveImage] = useState(0)
   const [heroImageIndex, setHeroImageIndex] = useState(0)
   const [open, setOpen] = useState(false)
-  const [isSpecialRequestOpen, setIsSpecialRequestOpen] = useState(false)
-  const [specialRequestForm, setSpecialRequestForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    dates: "",
-    message: "",
-  })
   const [homeHref, setHomeHref] = useState("/")
 
   useEffect(() => {
@@ -264,17 +237,8 @@ export default function VillaClient({ villa }: VillaClientProps) {
   const rentUrl = safeExternalUrl(villa?.rent_url)
   const socialUrl = safeExternalUrl(villa?.social_url)
   const saleInterestEnabled = Boolean(villa?.sale_interest_enabled)
-  const specialRequestEnabled = Boolean(villa?.special_request_enabled)
-  const specialRequestLabel = safeText(villa?.special_request_label, "Special Request")
-  const specialRequestEmail = safeText(villa?.special_request_email, "info@nocterra.gr")
-  const showPropertyActions = Boolean(rentUrl || socialUrl || saleInterestEnabled || specialRequestEnabled)
+  const showPropertyActions = Boolean(rentUrl || socialUrl || saleInterestEnabled)
   const purchaseMailto = createPurchaseMailto(title, location)
-  const specialRequestMailto = createSpecialRequestMailto(specialRequestEmail, title, location, specialRequestForm)
-  const submitSpecialRequest = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    window.location.href = specialRequestMailto
-    setIsSpecialRequestOpen(false)
-  }
   const propertyType = safeText(villa?.property_type, "villa").toLowerCase()
   const latitude = safeCoordinate(villa?.latitude)
   const longitude = safeCoordinate(villa?.longitude)
@@ -632,16 +596,6 @@ export default function VillaClient({ villa }: VillaClientProps) {
                   Interested in buying
                 </a>
               )}
-
-              {specialRequestEnabled && (
-                <button
-                  type="button"
-                  onClick={() => setIsSpecialRequestOpen(true)}
-                  className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[11px] uppercase tracking-[0.22em] text-white transition-all duration-300 hover:border-[#c9a962]/70 hover:text-[#c9a962]"
-                >
-                  {specialRequestLabel}
-                </button>
-              )}
             </div>
           </div>
         </section>
@@ -683,40 +637,6 @@ export default function VillaClient({ villa }: VillaClientProps) {
           </button>
         </div>
       )}
-      {isSpecialRequestOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-5 backdrop-blur-sm">
-          <div className="w-full max-w-xl border border-[#c9a962]/25 bg-[#070707] p-6 shadow-2xl md:p-8">
-            <div className="mb-6 flex items-start justify-between gap-5">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.35em] text-[#c9a962]">Concierge Request</p>
-                <h3 className="mt-3 text-2xl font-light tracking-[0.12em] text-white">{title}</h3>
-                {location ? <p className="mt-2 text-xs uppercase tracking-[0.25em] text-white/45">{location}</p> : null}
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsSpecialRequestOpen(false)}
-                className="border border-white/10 px-3 py-2 text-xs uppercase tracking-[0.2em] text-white/60 transition hover:border-[#c9a962]/60 hover:text-[#c9a962]"
-              >
-                Close
-              </button>
-            </div>
-            <form onSubmit={submitSpecialRequest} className="space-y-3">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <input required placeholder="Name" value={specialRequestForm.name} onChange={(e) => setSpecialRequestForm((prev) => ({ ...prev, name: e.target.value }))} className="border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-[#c9a962]/60" />
-                <input required type="email" placeholder="Email" value={specialRequestForm.email} onChange={(e) => setSpecialRequestForm((prev) => ({ ...prev, email: e.target.value }))} className="border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-[#c9a962]/60" />
-                <input placeholder="Phone / WhatsApp" value={specialRequestForm.phone} onChange={(e) => setSpecialRequestForm((prev) => ({ ...prev, phone: e.target.value }))} className="border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-[#c9a962]/60" />
-                <input placeholder="Preferred dates" value={specialRequestForm.dates} onChange={(e) => setSpecialRequestForm((prev) => ({ ...prev, dates: e.target.value }))} className="border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-[#c9a962]/60" />
-              </div>
-              <textarea required placeholder="Tell us what you would like prepared before arrival..." value={specialRequestForm.message} onChange={(e) => setSpecialRequestForm((prev) => ({ ...prev, message: e.target.value }))} rows={5} className="w-full border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-[#c9a962]/60" />
-              <button type="submit" className="w-full border border-[#c9a962] bg-[#c9a962] px-6 py-4 text-[10px] uppercase tracking-[0.3em] text-black transition hover:bg-transparent hover:text-[#c9a962]">
-                Send Request
-              </button>
-              <p className="text-center text-[11px] leading-5 text-white/35">Your request will open as a prepared email to our concierge team.</p>
-            </form>
-          </div>
-        </div>
-      ) : null}
-
     </div>
   )
 }
