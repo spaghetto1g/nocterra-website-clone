@@ -41,6 +41,9 @@ type VillaFormData = {
   rent_url: string
   social_url: string
   sale_interest_enabled: boolean
+  special_request_enabled: boolean
+  special_request_label: string
+  special_request_email: string
   yacht_route: string
   departure_port: string
   max_passengers: number | ""
@@ -135,6 +138,9 @@ const emptyForm: VillaFormData = {
   rent_url: "",
   social_url: "",
   sale_interest_enabled: false,
+  special_request_enabled: false,
+  special_request_label: "Special Request",
+  special_request_email: "info@nocterra.gr",
   yacht_route: "",
   departure_port: "",
   max_passengers: "",
@@ -175,6 +181,9 @@ function buildFormFromInitial(initialData?: Partial<VillaFormData> | null): Vill
     rent_url: initialData.rent_url ?? "",
     social_url: initialData.social_url ?? "",
     sale_interest_enabled: Boolean(initialData.sale_interest_enabled),
+    special_request_enabled: Boolean((initialData as any).special_request_enabled),
+    special_request_label: (initialData as any).special_request_label ?? "Special Request",
+    special_request_email: (initialData as any).special_request_email ?? "info@nocterra.gr",
     yacht_route: (initialData as any).yacht_route ?? "",
     departure_port: (initialData as any).departure_port ?? "",
     max_passengers: toNumberOrEmpty((initialData as any).max_passengers),
@@ -399,6 +408,9 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
       rent_url: form.rent_url.trim(),
       social_url: form.social_url.trim(),
       sale_interest_enabled: Boolean(form.sale_interest_enabled),
+      special_request_enabled: Boolean(form.special_request_enabled),
+      special_request_label: form.special_request_label.trim(),
+      special_request_email: form.special_request_email.trim() || "info@nocterra.gr",
       yacht_route: form.yacht_route.trim(),
       departure_port: form.departure_port.trim(),
       max_passengers: Number(form.max_passengers) || 0,
@@ -701,6 +713,35 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
           />
           Enable Interested in buying this property button
         </label>
+
+        <div className="border border-white/10 rounded-lg px-4 py-4 space-y-4">
+          <label className="flex items-center gap-3 text-white/80">
+            <input
+              type="checkbox"
+              checked={form.special_request_enabled}
+              onChange={(event) => updateField("special_request_enabled", event.target.checked)}
+              className="h-4 w-4 accent-[#c9a962]"
+            />
+            Enable Special Request / Concierge popup button
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              value={form.special_request_label}
+              onChange={(event) => updateField("special_request_label", event.target.value)}
+              placeholder="Button label e.g. Special Request"
+              className="bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60"
+            />
+            <input
+              value={form.special_request_email}
+              onChange={(event) => updateField("special_request_email", event.target.value)}
+              placeholder="Notification email e.g. info@nocterra.gr"
+              className="bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60"
+            />
+          </div>
+          <p className="text-xs text-white/40 leading-relaxed">
+            Shows a luxury popup on the public property page. The guest request opens as a prefilled email to the address above.
+          </p>
+        </div>
       </div>
 
       <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-6 space-y-5">
