@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 
 const STATUS_OPTIONS = ["active", "archived", "draft"] as const
 const PROPERTY_TYPE_OPTIONS = [
@@ -139,6 +139,7 @@ const emptyForm: VillaFormData = {
 }
 
 export default function VillaForm({ initialData, onSave, submitLabel = "Save Villa" }: VillaFormProps) {
+  const supabase = useMemo(() => createClient(), [])
   const [form, setForm] = useState<VillaFormData>(emptyForm)
   const [heroInput, setHeroInput] = useState("")
   const [galleryInput, setGalleryInput] = useState("")
