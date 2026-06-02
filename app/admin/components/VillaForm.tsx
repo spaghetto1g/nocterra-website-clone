@@ -17,10 +17,12 @@ const STORAGE_BUCKET = "villa-images"
 const MAX_IMAGE_SIZE_MB = 10
 
 const IMAGE_INPUT_ACCEPT = "image/jpeg,image/png,image/webp"
+const RESERVED_CUSTOM_SUBDOMAINS = new Set(["www", "admin", "api", "mail", "smtp", "imap", "pop", "ftp", "webmail"])
 
 type VillaFormData = {
   title: string
   slug: string
+  custom_subdomain: string
   location: string
   property_type: string
   description: string
@@ -64,6 +66,10 @@ function slugify(value: string) {
     .replace(/['’]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
+}
+
+function subdomainify(value: string) {
+  return slugify(value).replace(/^-+|-+$/g, "")
 }
 
 function toStringArray(value: unknown): string[] {
@@ -110,6 +116,7 @@ function safeFolderName(value: string) {
 const emptyForm: VillaFormData = {
   title: "",
   slug: "",
+  custom_subdomain: "",
   location: "",
   property_type: "villa",
   description: "",
@@ -149,6 +156,7 @@ function buildFormFromInitial(initialData?: Partial<VillaFormData> | null): Vill
   return {
     title: initialData.title ?? "",
     slug: initialData.slug ?? "",
+    custom_subdomain: (initialData as any).custom_subdomain ?? "",
     location: initialData.location ?? "",
     property_type: initialData.property_type ?? "villa",
     description: initialData.description ?? "",
@@ -360,10 +368,19 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
     setSaving(true)
 
     const cleanHeroImages = uniqueImages(form.hero_images)
+    const cleanCustomSubdomain = subdomainify(form.custom_subdomain)
+
+    if (cleanCustomSubdomain && RESERVED_CUSTOM_SUBDOMAINS.has(cleanCustomSubdomain)) {
+      setSaving(false)
+      alert("This subdomain is reserved. Please choose another custom subdomain.")
+      return
+    }
+
     const payload: VillaFormData = {
       ...form,
       title: form.title.trim(),
       slug: (form.slug || suggestedSlug).trim(),
+      custom_subdomain: cleanCustomSubdomain,
       location: form.location.trim(),
       property_type: form.property_type || "villa",
       description: form.description.trim(),
@@ -428,6 +445,22 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
             placeholder={suggestedSlug || "villa-nocterra"}
           />
           <p className="text-white/35 text-xs mt-2">Public URL: /villas/{form.slug || suggestedSlug || "villa-slug"}</p>
+        </div>
+
+        <div>
+          <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">Custom Subdomain</label>
+          <input
+            value={form.custom_subdomain}
+            onChange={(event) => updateField("custom_subdomain", subdomainify(event.target.value))}
+            className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60"
+            placeholder="azure"
+          />
+          <p className="text-white/35 text-xs mt-2">
+            Optional direct URL: https://{form.custom_subdomain || "name"}.nocterra.gr
+          </p>
+          <p className="text-white/35 text-xs mt-1">
+            Use lowercase English letters, numbers and hyphens only. Avoid www, admin, api, mail.
+          </p>
         </div>
 
         <div>

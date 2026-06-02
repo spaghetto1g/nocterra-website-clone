@@ -40,6 +40,7 @@ export default function NewVillaPage() {
       .insert({
         title: data.title,
         slug: data.slug,
+        custom_subdomain: data.custom_subdomain || null,
         location: data.location || "",
         property_type: data.property_type || initialType,
         description: data.description || null,

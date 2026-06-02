@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase"
 export type Villa = {
   id: string | number
   slug: string
+  custom_subdomain?: string | null
   title: string
   location?: string | null
   property_type?: string | null
@@ -60,6 +61,7 @@ function normalizeVilla(row: any): Villa {
     ...row,
     id: row?.id,
     slug: row?.slug ?? "",
+    custom_subdomain: row?.custom_subdomain ?? "",
     title: row?.title ?? "Untitled villa",
     location: row?.location ?? "",
     property_type: row?.property_type ?? "villa",
@@ -139,6 +141,26 @@ export async function getVillaBySlug(slug: string): Promise<Villa | null> {
 
   if (error || !data) {
     if (error) console.error("Failed to load villa", error)
+    return null
+  }
+
+  return normalizeVilla(data)
+}
+
+export async function getVillaByCustomSubdomain(customSubdomain: string): Promise<Villa | null> {
+  const cleanSubdomain = customSubdomain.toLowerCase().trim()
+
+  if (!cleanSubdomain) return null
+
+  const { data, error } = await supabase
+    .from("villas")
+    .select("*")
+    .eq("custom_subdomain", cleanSubdomain)
+    .eq("status", "active")
+    .maybeSingle()
+
+  if (error || !data) {
+    if (error) console.error("Failed to load villa by custom subdomain", error)
     return null
   }
 
