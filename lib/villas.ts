@@ -12,6 +12,9 @@ export type Villa = {
   hero_image?: string | null
   gallery?: string[]
   hero_images?: string[]
+  hero_media_mode?: string | null
+  hero_video_url?: string | null
+  hero_video_poster?: string | null
   amenities?: string[]
   bedrooms?: number | null
   bathrooms?: number | null
@@ -70,6 +73,9 @@ function normalizeVilla(row: any): Villa {
     heroImage,
     hero_image: heroImage,
     hero_images: normalizeArray(row?.hero_images),
+    hero_media_mode: ["cover", "fit", "video"].includes(row?.hero_media_mode) ? row?.hero_media_mode : "cover",
+    hero_video_url: row?.hero_video_url ?? "",
+    hero_video_poster: row?.hero_video_poster ?? "",
     gallery: normalizeArray(row?.gallery),
     amenities: normalizeArray(row?.amenities),
     bedrooms: Number(row?.bedrooms) || 0,

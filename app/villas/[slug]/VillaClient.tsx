@@ -152,6 +152,18 @@ function isVideoFileUrl(input: string) {
   return /\.(mp4|webm|ogg)(\?.*)?$/i.test(input)
 }
 
+function getHeroVideoUrl(value: unknown) {
+  if (typeof value !== "string") return ""
+  const input = value.trim()
+  if (!input) return ""
+  if (!/^https?:\/\//i.test(input) && !input.startsWith("/")) return ""
+  return isVideoFileUrl(input) ? input : ""
+}
+
+function getHeroMediaMode(value: unknown) {
+  return value === "fit" || value === "video" ? value : "cover"
+}
+
 function normalizeVideoUrl(input: string) {
   const trimmed = input.trim()
 
@@ -386,6 +398,11 @@ export default function VillaClient({ villa }: VillaClientProps) {
   }, [villa?.gallery, heroImages])
 
   const heroActiveImage = heroImages[heroImageIndex] || heroImages[0] || FALLBACK_IMAGE
+  const heroMediaMode = getHeroMediaMode(villa?.hero_media_mode)
+  const heroVideoUrl = getHeroVideoUrl(villa?.hero_video_url)
+  const heroPoster = safeImageUrl(villa?.hero_video_poster || heroActiveImage)
+  const shouldRenderHeroVideo = heroMediaMode === "video" && Boolean(heroVideoUrl)
+  const shouldRenderHeroFit = heroMediaMode === "fit"
   const safeImage = images[activeImage] || images[0] || FALLBACK_IMAGE
   const sideImages = [1, 2, 3].map((offset) => images[(activeImage + offset) % images.length])
 
@@ -451,10 +468,29 @@ export default function VillaClient({ villa }: VillaClientProps) {
           </span>
         </Link>
 
-        <ImageWithFallback src={heroActiveImage} alt={title} className="w-full h-full object-cover transition-opacity duration-1000" />
+        {shouldRenderHeroVideo ? (
+          <video
+            key={heroVideoUrl}
+            className="h-full w-full object-cover"
+            src={heroVideoUrl}
+            poster={heroPoster}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
+        ) : shouldRenderHeroFit ? (
+          <>
+            <ImageWithFallback src={heroActiveImage} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-35" />
+            <ImageWithFallback src={heroActiveImage} alt={title} className="relative z-[1] h-full w-full object-contain transition-opacity duration-1000" />
+          </>
+        ) : (
+          <ImageWithFallback src={heroActiveImage} alt={title} className="w-full h-full object-cover transition-opacity duration-1000" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/5 to-black/65" />
 
-        {heroImages.length > 1 && (
+        {heroImages.length > 1 && !shouldRenderHeroVideo && (
           <>
             <button type="button" onClick={prevHeroImage} className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 text-4xl text-white/70 hover:text-white">
               ‹
