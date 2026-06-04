@@ -1,9 +1,6 @@
--- NOCTERRA production-safe migration
--- Adds an optional admin-managed video embed field to public property pages.
--- Empty/null values remain hidden on the frontend.
-
+-- NOCTERRA v30 - Optional property video embed
+-- Safe, backward-compatible migration. Existing villas remain unchanged.
 alter table public.villas
 add column if not exists video_embed text;
 
-comment on column public.villas.video_embed is
-'Optional video embed for NOCTERRA property pages. Supports YouTube/Vimeo URLs, iframe embed code, and direct MP4/WebM URLs. Empty values are hidden.';
+comment on column public.villas.video_embed is 'Optional video embed for public villa pages. Supports YouTube, Vimeo, iframe embed, MP4/WebM URL. Empty/null stays hidden.';
