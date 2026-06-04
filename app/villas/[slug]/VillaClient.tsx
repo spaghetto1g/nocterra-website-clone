@@ -460,7 +460,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
 
   return (
     <div className="text-white bg-black">
-      <div className="relative min-h-[100svh] w-full overflow-hidden bg-black">
+      <div className="w-full h-[72svh] sm:h-[74svh] md:h-[84vh] relative overflow-hidden bg-black">
         <Link href={homeHref} className="absolute top-5 left-4 sm:top-6 sm:left-6 z-20 flex items-center">
           <span className="text-base sm:text-lg tracking-[0.24em] sm:tracking-[0.3em] font-light">
             <span className="text-[#c9a962]">N</span>
