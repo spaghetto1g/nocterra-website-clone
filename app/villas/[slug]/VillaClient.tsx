@@ -143,6 +143,74 @@ function getTourData(value: unknown): TourRenderData | null {
   return { kind: "external", openUrl: normalized }
 }
 
+type VideoRenderData =
+  | { kind: "iframe"; src: string; openUrl: string }
+  | { kind: "video"; src: string; openUrl: string }
+
+function isDirectVideoUrl(input: string) {
+  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(input)
+}
+
+function normalizeVideoEmbedUrl(input: string) {
+  const trimmed = input.trim()
+
+  const youtubePatterns = [
+    /youtube\.com\/watch\?v=([A-Za-z0-9_-]+)/i,
+    /youtu\.be\/([A-Za-z0-9_-]+)/i,
+    /youtube\.com\/embed\/([A-Za-z0-9_-]+)/i,
+    /youtube\.com\/shorts\/([A-Za-z0-9_-]+)/i,
+  ]
+
+  for (const pattern of youtubePatterns) {
+    const match = trimmed.match(pattern)
+    if (match?.[1]) {
+      return `https://www.youtube.com/embed/${encodeURIComponent(match[1])}`
+    }
+  }
+
+  const vimeoPatterns = [
+    /vimeo\.com\/(\d+)/i,
+    /player\.vimeo\.com\/video\/(\d+)/i,
+  ]
+
+  for (const pattern of vimeoPatterns) {
+    const match = trimmed.match(pattern)
+    if (match?.[1]) {
+      return `https://player.vimeo.com/video/${encodeURIComponent(match[1])}`
+    }
+  }
+
+  return trimmed
+}
+
+function getVideoData(value: unknown): VideoRenderData | null {
+  if (typeof value !== "string") return null
+
+  const raw = value.trim()
+  if (!raw) return null
+
+  const iframeSrc = extractIframeSrc(raw)
+  const input = iframeSrc || raw
+
+  if (!/^https?:\/\//i.test(input) && !input.startsWith("/")) return null
+
+  const normalized = normalizeVideoEmbedUrl(input)
+
+  if (isDirectVideoUrl(normalized)) {
+    return { kind: "video", src: normalized, openUrl: normalized }
+  }
+
+  const knownEmbeddable =
+    /youtube\.com\/embed/i.test(normalized) ||
+    /player\.vimeo\.com\/video/i.test(normalized)
+
+  if (knownEmbeddable) {
+    return { kind: "iframe", src: normalized, openUrl: normalized }
+  }
+
+  return null
+}
+
 function safeExternalUrl(value: unknown) {
   if (typeof value !== "string") return ""
 
@@ -271,6 +339,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
   const heroImage = safeImageUrl(villa?.hero_image || villa?.heroImage)
   const amenities = safeStringArray(villa?.amenities)
   const tourData = getTourData(villa?.tour_link || villa?.tourLink)
+  const videoData = getVideoData(villa?.video_embed || villa?.videoLink || villa?.video_link)
   const rentUrl = safeExternalUrl(villa?.rent_url)
   const socialUrl = safeExternalUrl(villa?.social_url)
   const saleInterestEnabled = Boolean(villa?.sale_interest_enabled)
@@ -557,6 +626,38 @@ export default function VillaClient({ villa }: VillaClientProps) {
           )}
         </div>
       </div>
+
+      {videoData && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 border-t border-white/10">
+          <div className="bg-[#0b0b0b] border border-white/10 p-4 sm:p-5 md:p-6">
+            <div className="mb-5">
+              <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-3">Video</p>
+              <h2 className="text-2xl md:text-3xl font-light text-white">Experience {title}</h2>
+            </div>
+
+            <div className="relative aspect-video w-full overflow-hidden border border-white/10 bg-black">
+              {videoData.kind === "iframe" ? (
+                <iframe
+                  src={videoData.src}
+                  className="absolute inset-0 h-full w-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                  allowFullScreen
+                  loading="lazy"
+                  title={`${title} video`}
+                />
+              ) : (
+                <video
+                  src={videoData.src}
+                  className="absolute inset-0 h-full w-full bg-black object-contain"
+                  controls
+                  playsInline
+                  preload="metadata"
+                />
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 border-t border-white/10">
         <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.4fr] gap-6 items-stretch">

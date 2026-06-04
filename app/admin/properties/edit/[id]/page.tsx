@@ -72,6 +72,7 @@ export default function EditVillaPage({ params }: EditVillaPageProps) {
         latitude: data.latitude ?? null,
         longitude: data.longitude ?? null,
         tour_link: data.tour_link || null,
+        video_embed: data.video_embed || null,
         rent_url: data.rent_url || null,
         social_url: data.social_url || null,
         sale_interest_enabled: data.sale_interest_enabled ?? false,

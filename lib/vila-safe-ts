@@ -30,6 +30,7 @@ export function safeVilla(villa: any) {
 
     tour_link: villa.tour_link ?? "",
     video_link: villa.video_link ?? "",
+    video_embed: villa.video_embed ?? "",
 
     status: villa.status ?? "active",
   }

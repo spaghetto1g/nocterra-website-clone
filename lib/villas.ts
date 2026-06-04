@@ -22,6 +22,7 @@ export type Villa = {
   featured?: boolean | null
   tourLink?: string | null
   tour_link?: string | null
+  video_embed?: string | null
   rent_url?: string | null
   social_url?: string | null
   sale_interest_enabled?: boolean | null
@@ -80,6 +81,7 @@ function normalizeVilla(row: any): Villa {
     featured: Boolean(row?.featured),
     tourLink: row?.tour_link ?? "",
     tour_link: row?.tour_link ?? "",
+    video_embed: row?.video_embed ?? "",
     rent_url: row?.rent_url ?? "",
     social_url: row?.social_url ?? "",
     sale_interest_enabled: Boolean(row?.sale_interest_enabled),

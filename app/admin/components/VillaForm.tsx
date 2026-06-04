@@ -38,6 +38,7 @@ type VillaFormData = {
   latitude: number | "" | null
   longitude: number | "" | null
   tour_link: string
+  video_embed: string
   rent_url: string
   social_url: string
   sale_interest_enabled: boolean
@@ -135,6 +136,7 @@ const emptyForm: VillaFormData = {
   latitude: null,
   longitude: null,
   tour_link: "",
+  video_embed: "",
   rent_url: "",
   social_url: "",
   sale_interest_enabled: false,
@@ -178,6 +180,7 @@ function buildFormFromInitial(initialData?: Partial<VillaFormData> | null): Vill
     latitude: toCoordinate(initialData.latitude),
     longitude: toCoordinate(initialData.longitude),
     tour_link: initialData.tour_link ?? "",
+    video_embed: (initialData as any).video_embed ?? (initialData as any).video_link ?? "",
     rent_url: initialData.rent_url ?? "",
     social_url: initialData.social_url ?? "",
     sale_interest_enabled: Boolean(initialData.sale_interest_enabled),
@@ -405,6 +408,7 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
       latitude: form.latitude === "" || form.latitude === null ? null : Number(form.latitude),
       longitude: form.longitude === "" || form.longitude === null ? null : Number(form.longitude),
       tour_link: form.tour_link.trim(),
+      video_embed: form.video_embed.trim(),
       rent_url: form.rent_url.trim(),
       social_url: form.social_url.trim(),
       sale_interest_enabled: Boolean(form.sale_interest_enabled),
@@ -668,8 +672,23 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
       </div>
 
       <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-6 space-y-5">
-        <h2 className="text-lg font-light">360 Tour & Location</h2>
-        <input value={form.tour_link} onChange={(event) => updateField("tour_link", event.target.value)} className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60" placeholder="360 tour embed URL / link" />
+        <h2 className="text-lg font-light">360 Tour, Video Embed & Location</h2>
+        <div>
+          <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">360 Tour</label>
+          <input value={form.tour_link} onChange={(event) => updateField("tour_link", event.target.value)} className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60" placeholder="360 tour embed URL / link" />
+          <p className="text-white/35 text-xs mt-2">Optional. Supports Matterport and other supported 360 embed links.</p>
+        </div>
+        <div>
+          <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">Video Embed</label>
+          <textarea
+            value={form.video_embed}
+            onChange={(event) => updateField("video_embed", event.target.value)}
+            rows={3}
+            className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60 resize-y"
+            placeholder="Paste YouTube/Vimeo URL, embed URL, iframe code or direct MP4/WebM video URL"
+          />
+          <p className="text-white/35 text-xs mt-2">Optional. If empty, no video section appears on the public property page. When filled, it appears below About / 360 in a responsive luxury frame.</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="number" step="any" value={form.latitude ?? ""} onChange={(event) => updateField("latitude", event.target.value === "" ? null : Number(event.target.value))} className="bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60" placeholder="Latitude" />
           <input type="number" step="any" value={form.longitude ?? ""} onChange={(event) => updateField("longitude", event.target.value === "" ? null : Number(event.target.value))} className="bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60" placeholder="Longitude" />
