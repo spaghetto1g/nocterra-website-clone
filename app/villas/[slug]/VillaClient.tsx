@@ -469,17 +469,19 @@ export default function VillaClient({ villa }: VillaClientProps) {
         </Link>
 
         {shouldRenderHeroVideo ? (
-          <video
-            key={heroVideoUrl}
-            className="h-full w-full object-cover"
-            src={heroVideoUrl}
-            poster={heroPoster}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-          />
+          <div className="relative h-full w-full bg-black">
+            <video
+              key={heroVideoUrl}
+              className="relative z-[1] h-full w-full object-contain md:object-cover"
+              src={heroVideoUrl}
+              poster={heroPoster}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+            />
+          </div>
         ) : shouldRenderHeroFit ? (
           <>
             <ImageWithFallback src={heroActiveImage} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-35" />
