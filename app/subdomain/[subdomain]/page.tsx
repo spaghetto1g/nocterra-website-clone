@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation"
 import VillaClient from "@/app/villas/[slug]/VillaClient"
-import { getConciergeForVilla } from "@/lib/concierge"
 import { getVillaByCustomSubdomain } from "@/lib/villas"
 
 export const dynamic = "force-dynamic"
@@ -18,7 +17,5 @@ export default async function SubdomainPage({ params }: SubdomainPageProps) {
     notFound()
   }
 
-  const conciergeItems = await getConciergeForVilla(villa)
-
-  return <VillaClient villa={villa} conciergeItems={conciergeItems} />
+  return <VillaClient villa={villa} />
 }
