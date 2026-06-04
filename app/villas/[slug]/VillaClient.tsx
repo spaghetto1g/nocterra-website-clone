@@ -6,8 +6,21 @@ import { useEffect, useMemo, useState } from "react"
 
 const FALLBACK_IMAGE = "/placeholder.jpg"
 
+type ConciergeItem = {
+  id: number
+  title: string
+  category: string
+  description?: string | null
+  location?: string | null
+  image_url?: string | null
+  website_url?: string | null
+  phone?: string | null
+  email?: string | null
+}
+
 type VillaClientProps = {
   villa: any
+  conciergeItems?: ConciergeItem[]
 }
 
 function safeText(value: unknown, fallback = "-") {
@@ -321,7 +334,7 @@ function ImageWithFallback({
   )
 }
 
-export default function VillaClient({ villa }: VillaClientProps) {
+export default function VillaClient({ villa, conciergeItems = [] }: VillaClientProps) {
   const [activeImage, setActiveImage] = useState(0)
   const [heroImageIndex, setHeroImageIndex] = useState(0)
   const [open, setOpen] = useState(false)
@@ -378,6 +391,22 @@ export default function VillaClient({ villa }: VillaClientProps) {
     villa?.yacht_length ? { label: "Length", value: villa.yacht_length } : null,
     villa?.charter_price ? { label: "Charter", value: villa.charter_price } : null,
   ].filter(Boolean) as { label: string; value: string | number }[]
+
+  const activeConciergeItems = useMemo(() => {
+    return conciergeItems.filter((item) => item?.title && item?.category)
+  }, [conciergeItems])
+
+  const conciergeGroups = useMemo(() => {
+    const groups = new Map<string, ConciergeItem[]>()
+
+    activeConciergeItems.forEach((item) => {
+      const category = safeText(item.category, "Custom Experiences")
+      const existing = groups.get(category) ?? []
+      groups.set(category, [...existing, item])
+    })
+
+    return Array.from(groups.entries()).map(([category, items]) => ({ category, items }))
+  }, [activeConciergeItems])
 
   const heroImages = useMemo(() => {
     const savedHeroImages = safeStringArray(villa?.hero_images)
@@ -460,7 +489,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
 
   return (
     <div className="text-white bg-black">
-      <div className="w-full h-[77svh] sm:h-[77svh] md:h-[88vh] relative overflow-hidden bg-black">
+      <div className="w-full h-[70svh] md:h-[80vh] relative overflow-hidden bg-black">
         <Link href={homeHref} className="absolute top-5 left-4 sm:top-6 sm:left-6 z-20 flex items-center">
           <span className="text-base sm:text-lg tracking-[0.24em] sm:tracking-[0.3em] font-light">
             <span className="text-[#c9a962]">N</span>
@@ -469,19 +498,17 @@ export default function VillaClient({ villa }: VillaClientProps) {
         </Link>
 
         {shouldRenderHeroVideo ? (
-          <div className="relative h-full w-full bg-black">
-            <video
-              key={heroVideoUrl}
-              className="relative z-[1] h-full w-full object-contain md:object-cover"
-              src={heroVideoUrl}
-              poster={heroPoster}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-            />
-          </div>
+          <video
+            key={heroVideoUrl}
+            className="h-full w-full object-cover"
+            src={heroVideoUrl}
+            poster={heroPoster}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
         ) : shouldRenderHeroFit ? (
           <>
             <ImageWithFallback src={heroActiveImage} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-35" />
@@ -735,6 +762,69 @@ export default function VillaClient({ villa }: VillaClientProps) {
         </div>
       </section>
 
+
+      {conciergeGroups.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 border-t border-white/10">
+          <div className="mb-8">
+            <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-4">Concierge</p>
+            <h2 className="text-2xl md:text-3xl font-light text-white">Curated experiences for your stay</h2>
+            <p className="text-white/45 text-sm mt-3 max-w-2xl leading-6">
+              Handpicked NOCTERRA recommendations for dining, transport, wellness and private services around this property.
+            </p>
+          </div>
+
+          <div className="space-y-8">
+            {conciergeGroups.map((group) => (
+              <div key={group.category}>
+                <h3 className="text-white/50 text-xs uppercase tracking-[0.28em] mb-4">{group.category}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {group.items.map((item) => {
+                    const imageUrl = typeof item.image_url === "string" && item.image_url.trim() ? item.image_url.trim() : ""
+                    const websiteUrl = typeof item.website_url === "string" && item.website_url.trim() ? item.website_url.trim() : ""
+                    const phone = safeText(item.phone, "")
+                    const email = safeText(item.email, "")
+
+                    return (
+                      <article key={item.id} className="border border-white/10 bg-[#0b0b0b] overflow-hidden">
+                        {imageUrl && (
+                          <div className="h-44 overflow-hidden bg-black">
+                            <img src={imageUrl} alt={item.title} className="h-full w-full object-cover opacity-90" loading="lazy" />
+                          </div>
+                        )}
+                        <div className="p-5">
+                          {item.location && <p className="text-[#c9a962] text-[10px] uppercase tracking-[0.22em] mb-3">{item.location}</p>}
+                          <h4 className="text-xl font-light text-white">{item.title}</h4>
+                          {item.description && <p className="text-white/45 text-sm mt-3 leading-6">{item.description}</p>}
+
+                          {(websiteUrl || phone || email) && (
+                            <div className="flex flex-wrap gap-2 mt-5">
+                              {websiteUrl && (
+                                <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="border border-[#c9a962]/50 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-[#c9a962] hover:bg-[#c9a962] hover:text-black transition">
+                                  View
+                                </a>
+                              )}
+                              {phone && (
+                                <a href={`tel:${phone}`} className="border border-white/15 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-white/60 hover:text-[#c9a962] hover:border-[#c9a962]/50 transition">
+                                  Call
+                                </a>
+                              )}
+                              {email && (
+                                <a href={`mailto:${email}`} className="border border-white/15 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-white/60 hover:text-[#c9a962] hover:border-[#c9a962]/50 transition">
+                                  Email
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {showPropertyActions && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 border-t border-white/10">

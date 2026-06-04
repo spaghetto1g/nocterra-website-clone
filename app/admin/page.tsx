@@ -40,6 +40,13 @@ const menuItems = [
     href: "/admin/properties/new?type=yacht",
     icon: Ship,
   },
+
+  {
+    title: "Concierge",
+    description: "Manage curated restaurants, VIP transport, chefs, wellness, yachts and private experiences.",
+    href: "/admin/concierge",
+    icon: Sparkles,
+  },
   {
     title: "360 Tours",
     description: "Manage tour links and embeds used inside property pages.",

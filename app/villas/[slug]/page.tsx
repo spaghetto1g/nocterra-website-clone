@@ -1,5 +1,6 @@
-import { supabase } from "@/lib/supabase"
 import VillaClient from "./VillaClient"
+import { getConciergeForVilla } from "@/lib/concierge"
+import { getVillaBySlug } from "@/lib/villas"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -7,13 +8,7 @@ export const revalidate = 0
 export default async function VillaPage({ params }: any) {
   const resolvedParams = await Promise.resolve(params)
   const slug = resolvedParams.slug
-
-  const { data: villa } = await supabase
-    .from("villas")
-    .select("*")
-    .eq("slug", slug)
-    .eq("status", "active")
-    .maybeSingle()
+  const villa = await getVillaBySlug(slug)
 
   if (!villa) {
     return (
@@ -23,5 +18,7 @@ export default async function VillaPage({ params }: any) {
     )
   }
 
-  return <VillaClient villa={villa} />
+  const conciergeItems = await getConciergeForVilla(villa)
+
+  return <VillaClient villa={villa} conciergeItems={conciergeItems} />
 }
