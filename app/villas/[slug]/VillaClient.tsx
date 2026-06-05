@@ -140,7 +140,10 @@ function getTourData(value: unknown): TourRenderData | null {
     return { kind: "iframe", src: normalized, openUrl: normalized }
   }
 
-  return { kind: "external", openUrl: normalized }
+  // Preserve the original NOCTERRA behavior: any valid 360 URL continues
+  // to render inline in the existing 360 frame. The only added behavior is
+  // that pasted iframe embed code is also accepted via extractIframeSrc().
+  return { kind: "iframe", src: normalized, openUrl: normalized }
 }
 
 
