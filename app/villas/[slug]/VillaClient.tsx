@@ -47,6 +47,61 @@ type TourRenderData =
   | { kind: "image"; src: string; openUrl: string }
   | { kind: "external"; openUrl: string }
 
+type VideoRenderData =
+  | { kind: "iframe"; src: string }
+  | { kind: "video"; src: string }
+
+function normalizeVideoUrl(input: string) {
+  const trimmed = input.trim()
+
+  const youtubePatterns = [
+    /youtube\.com\/watch\?v=([A-Za-z0-9_-]+)/i,
+    /youtu\.be\/([A-Za-z0-9_-]+)/i,
+    /youtube\.com\/embed\/([A-Za-z0-9_-]+)/i,
+  ]
+
+  for (const pattern of youtubePatterns) {
+    const match = trimmed.match(pattern)
+    if (match?.[1]) {
+      return `https://www.youtube.com/embed/${encodeURIComponent(match[1])}`
+    }
+  }
+
+  const vimeoPatterns = [
+    /vimeo\.com\/(\d+)/i,
+    /player\.vimeo\.com\/video\/(\d+)/i,
+  ]
+
+  for (const pattern of vimeoPatterns) {
+    const match = trimmed.match(pattern)
+    if (match?.[1]) {
+      return `https://player.vimeo.com/video/${encodeURIComponent(match[1])}`
+    }
+  }
+
+  return trimmed
+}
+
+function getVideoData(value: unknown): VideoRenderData | null {
+  if (typeof value !== "string") return null
+
+  const raw = value.trim()
+  if (!raw) return null
+
+  const iframeSrc = extractIframeSrc(raw)
+  const input = iframeSrc || raw
+
+  if (!/^https?:\/\//i.test(input) && !input.startsWith("/")) return null
+
+  const normalized = normalizeVideoUrl(input)
+
+  if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(normalized)) {
+    return { kind: "video", src: normalized }
+  }
+
+  return { kind: "iframe", src: normalized }
+}
+
 function extractIframeSrc(input: string) {
   const srcMatch = input.match(/src=["']([^"']+)["']/i)
   return srcMatch?.[1]?.trim() || ""
@@ -117,108 +172,28 @@ function getTourData(value: unknown): TourRenderData | null {
   if (!raw) return null
 
   const iframeSrc = extractIframeSrc(raw)
-  const input = iframeSrc || raw
 
-  if (!/^https?:\/\//i.test(input) && !input.startsWith("/")) return null
+  if (iframeSrc) {
+    const normalizedIframeSrc = normalizeTourUrl(iframeSrc)
+    if (!/^https?:\/\//i.test(normalizedIframeSrc) && !normalizedIframeSrc.startsWith("/")) return null
 
-  if (isImageUrl(input)) {
-    return { kind: "image", src: input, openUrl: input }
-  }
-
-  const normalized = normalizeTourUrl(input)
-
-  const knownEmbeddable =
-    /my\.matterport\.com\/show/i.test(normalized) ||
-    /youtube\.com\/embed/i.test(normalized) ||
-    /player\.vimeo\.com\/video/i.test(normalized) ||
-    /kuula\.co\/share/i.test(normalized) ||
-    /app\.cloudpano\.com\/tours\//i.test(normalized) ||
-    /momento360\.com\/e\/u\//i.test(normalized) ||
-    /roundme\.com\/embed\//i.test(normalized)
-
-  if (knownEmbeddable) {
-    return { kind: "iframe", src: normalized, openUrl: normalized }
-  }
-
-  return { kind: "external", openUrl: normalized }
-}
-
-
-type VideoRenderData =
-  | { kind: "iframe"; src: string; openUrl: string }
-  | { kind: "video"; src: string }
-
-function isVideoFileUrl(input: string) {
-  return /\.(mp4|webm|ogg)(\?.*)?$/i.test(input)
-}
-
-function getHeroVideoUrl(value: unknown) {
-  if (typeof value !== "string") return ""
-  const input = value.trim()
-  if (!input) return ""
-  if (!/^https?:\/\//i.test(input) && !input.startsWith("/")) return ""
-  return isVideoFileUrl(input) ? input : ""
-}
-
-function getHeroMediaMode(value: unknown) {
-  return value === "fit" || value === "video" ? value : "cover"
-}
-
-function normalizeVideoUrl(input: string) {
-  const trimmed = input.trim()
-
-  const youtubePatterns = [
-    /youtube\.com\/watch\?v=([A-Za-z0-9_-]+)/i,
-    /youtu\.be\/([A-Za-z0-9_-]+)/i,
-    /youtube\.com\/shorts\/([A-Za-z0-9_-]+)/i,
-    /youtube\.com\/embed\/([A-Za-z0-9_-]+)/i,
-  ]
-
-  for (const pattern of youtubePatterns) {
-    const match = trimmed.match(pattern)
-    if (match?.[1]) {
-      return `https://www.youtube.com/embed/${encodeURIComponent(match[1])}?rel=0&modestbranding=1&playsinline=1`
+    return {
+      kind: "iframe",
+      src: normalizedIframeSrc,
+      openUrl: normalizedIframeSrc,
     }
   }
 
-  const vimeoMatch = trimmed.match(/vimeo\.com\/(?:video\/)?([0-9]+)/i)
-  if (vimeoMatch?.[1]) {
-    return `https://player.vimeo.com/video/${encodeURIComponent(vimeoMatch[1])}`
+  if (!/^https?:\/\//i.test(raw) && !raw.startsWith("/")) return null
+
+  if (isImageUrl(raw)) {
+    return { kind: "image", src: raw, openUrl: raw }
   }
 
-  return trimmed
-}
-
-function getVideoData(value: unknown): VideoRenderData | null {
-  if (typeof value !== "string") return null
-
-  const raw = value.trim()
-  if (!raw) return null
-
-  const iframeSrc = extractIframeSrc(raw)
-  const input = iframeSrc || raw
-
-  if (!/^https?:\/\//i.test(input) && !input.startsWith("/")) return null
-
-  const normalized = normalizeVideoUrl(input)
-
-  if (isVideoFileUrl(normalized)) {
-    return { kind: "video", src: normalized }
+  return {
+    kind: "external",
+    openUrl: raw,
   }
-
-  const embeddable =
-    /youtube\.com\/embed/i.test(normalized) ||
-    /player\.vimeo\.com\/video/i.test(normalized)
-
-  if (embeddable) {
-    return { kind: "iframe", src: normalized, openUrl: normalized }
-  }
-
-  if (/^https?:\/\//i.test(normalized)) {
-    return { kind: "iframe", src: normalized, openUrl: normalized }
-  }
-
-  return null
 }
 
 function safeExternalUrl(value: unknown) {
@@ -349,7 +324,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
   const heroImage = safeImageUrl(villa?.hero_image || villa?.heroImage)
   const amenities = safeStringArray(villa?.amenities)
   const tourData = getTourData(villa?.tour_link || villa?.tourLink)
-  const videoData = getVideoData(villa?.video_embed)
+  const videoData = getVideoData(villa?.video_embed || villa?.videoEmbed)
   const rentUrl = safeExternalUrl(villa?.rent_url)
   const socialUrl = safeExternalUrl(villa?.social_url)
   const saleInterestEnabled = Boolean(villa?.sale_interest_enabled)
@@ -398,11 +373,6 @@ export default function VillaClient({ villa }: VillaClientProps) {
   }, [villa?.gallery, heroImages])
 
   const heroActiveImage = heroImages[heroImageIndex] || heroImages[0] || FALLBACK_IMAGE
-  const heroMediaMode = getHeroMediaMode(villa?.hero_media_mode)
-  const heroVideoUrl = getHeroVideoUrl(villa?.hero_video_url)
-  const heroPoster = safeImageUrl(villa?.hero_video_poster || heroActiveImage)
-  const shouldRenderHeroVideo = heroMediaMode === "video" && Boolean(heroVideoUrl)
-  const shouldRenderHeroFit = heroMediaMode === "fit"
   const safeImage = images[activeImage] || images[0] || FALLBACK_IMAGE
   const sideImages = [1, 2, 3].map((offset) => images[(activeImage + offset) % images.length])
 
@@ -460,7 +430,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
 
   return (
     <div className="text-white bg-black">
-      <div className="w-full h-[76svh] sm:h-[78svh] md:h-[88vh] relative overflow-hidden bg-black">
+      <div className="w-full h-[70svh] md:h-[80vh] relative overflow-hidden bg-black">
         <Link href={homeHref} className="absolute top-5 left-4 sm:top-6 sm:left-6 z-20 flex items-center">
           <span className="text-base sm:text-lg tracking-[0.24em] sm:tracking-[0.3em] font-light">
             <span className="text-[#c9a962]">N</span>
@@ -468,31 +438,10 @@ export default function VillaClient({ villa }: VillaClientProps) {
           </span>
         </Link>
 
-        {shouldRenderHeroVideo ? (
-          <div className="relative h-full w-full bg-black">
-            <video
-              key={heroVideoUrl}
-              className="relative z-[1] h-full w-full object-contain md:object-cover"
-              src={heroVideoUrl}
-              poster={heroPoster}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-            />
-          </div>
-        ) : shouldRenderHeroFit ? (
-          <>
-            <ImageWithFallback src={heroActiveImage} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-35" />
-            <ImageWithFallback src={heroActiveImage} alt={title} className="relative z-[1] h-full w-full object-contain transition-opacity duration-1000" />
-          </>
-        ) : (
-          <ImageWithFallback src={heroActiveImage} alt={title} className="w-full h-full object-cover transition-opacity duration-1000" />
-        )}
+        <ImageWithFallback src={heroActiveImage} alt={title} className="w-full h-full object-cover transition-opacity duration-1000" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/5 to-black/65" />
 
-        {heroImages.length > 1 && !shouldRenderHeroVideo && (
+        {heroImages.length > 1 && (
           <>
             <button type="button" onClick={prevHeroImage} className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 text-4xl text-white/70 hover:text-white">
               ‹
@@ -633,7 +582,7 @@ export default function VillaClient({ villa }: VillaClientProps) {
                 <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center bg-black">
                   <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-4">External 360 Experience</p>
                   <p className="text-white/55 text-sm leading-6 max-w-sm mb-6">
-                    This provider does not allow embedded viewing. Open the immersive tour in a new secure tab.
+                    This tour link is opened in a secure full-screen viewer for the best possible experience.
                   </p>
                   <a
                     href={tourData.openUrl}
@@ -663,34 +612,34 @@ export default function VillaClient({ villa }: VillaClientProps) {
         </div>
       </div>
 
-      {videoData && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-10 sm:pb-12 border-t border-white/10">
-          <div className="pt-10 sm:pt-12">
-            <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-4">Video</p>
-            <div className="relative aspect-video w-full overflow-hidden border border-white/10 bg-black shadow-2xl shadow-black/30">
-              {videoData.kind === "iframe" ? (
-                <iframe
-                  src={videoData.src}
-                  className="absolute inset-0 h-full w-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                  allowFullScreen
-                  loading="lazy"
-                  title={`${title} video`}
-                />
-              ) : (
-                <video
-                  src={videoData.src}
-                  className="absolute inset-0 h-full w-full object-contain bg-black"
-                  controls
-                  playsInline
-                  preload="metadata"
-                  title={`${title} video`}
-                />
-              )}
-            </div>
+      {videoData ? (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 border-t border-white/10">
+          <div className="mb-5">
+            <p className="text-[#c9a962] text-[11px] tracking-[0.3em] uppercase mb-3">Video</p>
+            <h2 className="text-2xl md:text-3xl font-light text-white">Property Film</h2>
+          </div>
+
+          <div className="relative aspect-video w-full overflow-hidden border border-white/10 bg-black shadow-2xl">
+            {videoData.kind === "video" ? (
+              <video
+                src={videoData.src}
+                className="absolute inset-0 h-full w-full object-cover"
+                controls
+                playsInline
+                preload="metadata"
+              />
+            ) : (
+              <iframe
+                src={videoData.src}
+                className="absolute inset-0 h-full w-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                allowFullScreen
+                loading="lazy"
+              />
+            )}
           </div>
         </section>
-      )}
+      ) : null}
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 border-t border-white/10">
         <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.4fr] gap-6 items-stretch">

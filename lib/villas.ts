@@ -12,9 +12,6 @@ export type Villa = {
   hero_image?: string | null
   gallery?: string[]
   hero_images?: string[]
-  hero_media_mode?: string | null
-  hero_video_url?: string | null
-  hero_video_poster?: string | null
   amenities?: string[]
   bedrooms?: number | null
   bathrooms?: number | null
@@ -25,7 +22,6 @@ export type Villa = {
   featured?: boolean | null
   tourLink?: string | null
   tour_link?: string | null
-  video_embed?: string | null
   rent_url?: string | null
   social_url?: string | null
   sale_interest_enabled?: boolean | null
@@ -73,9 +69,6 @@ function normalizeVilla(row: any): Villa {
     heroImage,
     hero_image: heroImage,
     hero_images: normalizeArray(row?.hero_images),
-    hero_media_mode: ["cover", "fit", "video"].includes(row?.hero_media_mode) ? row?.hero_media_mode : "cover",
-    hero_video_url: row?.hero_video_url ?? "",
-    hero_video_poster: row?.hero_video_poster ?? "",
     gallery: normalizeArray(row?.gallery),
     amenities: normalizeArray(row?.amenities),
     bedrooms: Number(row?.bedrooms) || 0,
@@ -87,7 +80,6 @@ function normalizeVilla(row: any): Villa {
     featured: Boolean(row?.featured),
     tourLink: row?.tour_link ?? "",
     tour_link: row?.tour_link ?? "",
-    video_embed: row?.video_embed ?? "",
     rent_url: row?.rent_url ?? "",
     social_url: row?.social_url ?? "",
     sale_interest_enabled: Boolean(row?.sale_interest_enabled),

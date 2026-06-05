@@ -15,11 +15,6 @@ const PROPERTY_TYPE_OPTIONS = [
 ] as const
 const STORAGE_BUCKET = "villa-images"
 const MAX_IMAGE_SIZE_MB = 10
-const HERO_MEDIA_MODE_OPTIONS = [
-  { value: "cover", label: "Cover Image" },
-  { value: "fit", label: "Full Image / Fit" },
-  { value: "video", label: "Hero Video" },
-] as const
 
 const IMAGE_INPUT_ACCEPT = "image/jpeg,image/png,image/webp"
 const RESERVED_CUSTOM_SUBDOMAINS = new Set(["www", "admin", "api", "mail", "smtp", "imap", "pop", "ftp", "webmail"])
@@ -33,9 +28,6 @@ type VillaFormData = {
   description: string
   hero_image: string
   hero_images: string[]
-  hero_media_mode: string
-  hero_video_url: string
-  hero_video_poster: string
   gallery: string[]
   bedrooms: number | ""
   bathrooms: number | ""
@@ -134,9 +126,6 @@ const emptyForm: VillaFormData = {
   description: "",
   hero_image: "",
   hero_images: [],
-  hero_media_mode: "cover",
-  hero_video_url: "",
-  hero_video_poster: "",
   gallery: [],
   bedrooms: "",
   bathrooms: "",
@@ -181,9 +170,6 @@ function buildFormFromInitial(initialData?: Partial<VillaFormData> | null): Vill
     description: initialData.description ?? "",
     hero_image: legacyHero || heroImages[0] || "",
     hero_images: heroImages,
-    hero_media_mode: ["cover", "fit", "video"].includes((initialData as any).hero_media_mode) ? (initialData as any).hero_media_mode : "cover",
-    hero_video_url: (initialData as any).hero_video_url ?? "",
-    hero_video_poster: (initialData as any).hero_video_poster ?? "",
     gallery: toStringArray(initialData.gallery),
     bedrooms: toNumberOrEmpty(initialData.bedrooms),
     bathrooms: toNumberOrEmpty(initialData.bathrooms),
@@ -412,9 +398,6 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
       description: form.description.trim(),
       hero_images: cleanHeroImages,
       hero_image: (cleanHeroImages[0] || form.hero_image).trim(),
-      hero_media_mode: ["cover", "fit", "video"].includes(form.hero_media_mode) ? form.hero_media_mode : "cover",
-      hero_video_url: form.hero_video_url.trim(),
-      hero_video_poster: form.hero_video_poster.trim(),
       gallery: uniqueImages(form.gallery),
       bedrooms: Number(form.bedrooms) || 0,
       bathrooms: Number(form.bathrooms) || 0,
@@ -557,47 +540,8 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
               onChange={(event) => uploadFiles(event.target.files, "hero")}
               className="block w-full text-sm text-white/70 file:mr-4 file:rounded-lg file:border-0 file:bg-[#c9a962] file:px-4 file:py-3 file:text-xs file:uppercase file:tracking-[0.2em] file:text-black hover:file:bg-[#d8b86d]"
             />
-            <p className="text-white/35 text-xs mt-2">Upload 1, 2 or 3+ hero images. They will become the villa hero carousel and the fallback image for video mode.</p>
+            <p className="text-white/35 text-xs mt-2">Upload 1, 2 or 3+ hero images. They will become the villa hero carousel.</p>
             {uploadingHero && <p className="text-[#c9a962] text-sm mt-2">Uploading hero images...</p>}
-          </div>
-
-          <div className="border border-white/10 rounded-lg p-4 space-y-4 bg-black/30">
-            <div>
-              <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">Hero Media Mode</label>
-              <select
-                value={form.hero_media_mode}
-                onChange={(event) => updateField("hero_media_mode", event.target.value)}
-                className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60"
-              >
-                {HERO_MEDIA_MODE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-              <p className="text-white/35 text-xs mt-2">Default is Cover Image, so existing villas keep the same luxury hero. Fit shows the full image without crop. Video uses a direct MP4/WebM URL and falls back to the first hero image.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">Hero Video URL</label>
-                <input
-                  value={form.hero_video_url}
-                  onChange={(event) => updateField("hero_video_url", event.target.value)}
-                  className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60"
-                  placeholder="https://nocterra.gr/videos/villa-drone.mp4"
-                />
-                <p className="text-white/35 text-xs mt-2">Recommended: self-hosted MP4/WebM for no third-party logos. Used only when Hero Media Mode is Video.</p>
-              </div>
-              <div>
-                <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">Hero Video Poster</label>
-                <input
-                  value={form.hero_video_poster}
-                  onChange={(event) => updateField("hero_video_poster", event.target.value)}
-                  className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60"
-                  placeholder="Optional poster/fallback image URL"
-                />
-                <p className="text-white/35 text-xs mt-2">Optional. If empty, NOCTERRA uses the first hero image as fallback.</p>
-              </div>
-            </div>
           </div>
 
           <div className="flex gap-2">
@@ -729,20 +673,16 @@ export default function VillaForm({ initialData, onSave, submitLabel = "Save Vil
 
       <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-6 space-y-5">
         <h2 className="text-lg font-light">360 Tour & Location</h2>
+        <input value={form.tour_link} onChange={(event) => updateField("tour_link", event.target.value)} className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60" placeholder="360 tour embed URL / link" />
         <div>
-          <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">360 Tour</label>
-          <input value={form.tour_link} onChange={(event) => updateField("tour_link", event.target.value)} className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60" placeholder="360 tour embed URL / link" />
-        </div>
-        <div>
-          <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">Video Embed</label>
+          <label className="block text-white/60 text-xs uppercase tracking-wider mb-2">Video Embed / URL</label>
           <textarea
             value={form.video_embed}
             onChange={(event) => updateField("video_embed", event.target.value)}
-            rows={4}
-            className="w-full bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60"
-            placeholder="Optional YouTube, Vimeo, iframe embed, MP4 or WebM URL"
+            className="w-full min-h-[96px] bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60"
+            placeholder="YouTube / Vimeo URL, iframe embed code, or direct MP4 video URL. Empty = hidden from public page."
           />
-          <p className="text-white/35 text-xs mt-2">Optional. If empty, no video section appears on the public property page.</p>
+          <p className="text-white/35 text-xs mt-2">Optional. Appears below About / 360 only when filled.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input type="number" step="any" value={form.latitude ?? ""} onChange={(event) => updateField("latitude", event.target.value === "" ? null : Number(event.target.value))} className="bg-black border border-white/15 rounded-lg px-4 py-3 text-white outline-none focus:border-[#c9a962]/60" placeholder="Latitude" />
