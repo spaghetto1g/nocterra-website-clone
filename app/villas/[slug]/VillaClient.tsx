@@ -140,11 +140,11 @@ function getTourData(value: unknown): TourRenderData | null {
     return { kind: "iframe", src: normalized, openUrl: normalized }
   }
 
-  if (/^https?:\/\//i.test(normalized)) {
-    return { kind: "iframe", src: normalized, openUrl: normalized }
-  }
-
-  return { kind: "external", openUrl: normalized }
+  // Preserve the original NOCTERRA behavior: any valid direct 360 URL
+  // is still rendered inline inside the existing 360 frame.
+  // Providers that block iframe rendering will naturally show their own
+  // browser-level restriction, but we do not force a redirect/fallback here.
+  return { kind: "iframe", src: normalized, openUrl: normalized }
 }
 
 
